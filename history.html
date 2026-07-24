@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Brothers Club Cheeral – Photo Gallery & Archive. Browse our memories by decade from the 1980s to today. Upload your old club photos." />
+  <title>History &amp; Gallery | Brothers Club Cheeral</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.png" alt="Brothers Club Cheeral Logo" class="nav-logo" />
+        <div class="nav-brand-text">
+          <div class="club-name">Brothers Club Cheeral</div>
+          <div class="reg-no">Reg. No: 27/88</div>
+        </div>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="history.html">History &amp; Gallery</a></li>
+        <li><a href="team.html">Team &amp; Legends</a></li>
+        <li><a href="trophies.html">Trophies</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li>
+          <a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener" class="nav-fb">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Facebook
+          </a>
+        </li>
+      </ul>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <header class="page-hero">
+    <div class="container">
+      <div class="page-hero-eyebrow reveal">📸 Archive</div>
+      <h1 class="page-hero-title reveal delay-1">History &amp; Gallery</h1>
+      <p class="page-hero-subtitle reveal delay-2">Decades of memories, one brotherhood — browse our photo archive or add yours</p>
+    </div>
+  </header>
+
+  <!-- GALLERY SECTION -->
+  <section class="section" aria-labelledby="gallery-heading">
+    <div class="container">
+      <p class="section-subtitle reveal">FILTER BY DECADE</p>
+      <h2 class="section-title reveal delay-1" id="gallery-heading">Photo Archive</h2>
+      <div class="section-divider reveal delay-2"></div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-bar reveal delay-2" role="group" aria-label="Filter photos by decade">
+        <button class="filter-btn active" data-filter="all" id="filter-all">All Photos</button>
+        <button class="filter-btn" data-filter="1980s" id="filter-1980s">1980s</button>
+        <button class="filter-btn" data-filter="1990s" id="filter-1990s">1990s</button>
+        <button class="filter-btn" data-filter="2000s" id="filter-2000s">2000s</button>
+        <button class="filter-btn" data-filter="2010s" id="filter-2010s">2010s</button>
+        <button class="filter-btn" data-filter="2020s" id="filter-2020s">2020s</button>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div class="gallery-grid" id="galleryGrid">
+
+        <!-- 1980s -->
+        <div class="gallery-item reveal" data-decade="1980s" data-src="assets/images/gallery_1990s.jpg" data-caption="Brothers Club Cheeral – Founding Years (1988)">
+          <img src="assets/images/gallery_1990s.jpg" alt="Brothers Club Cheeral founding year photo 1988" loading="lazy" />
+          <div class="gallery-overlay">
+            <span class="gallery-overlay-text">📅 1988 – Founding Year</span>
+          </div>
+          <div class="gallery-zoom-icon">🔍</div>
+        </div>
+
+        <div class="gallery-item reveal delay-1" data-decade="1980s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">📷</div>
+            <strong>1980s</strong>
+            <span>Photo coming soon<br/>Upload yours below!</span>
+          </div>
+          <div class="gallery-overlay"><span class="gallery-overlay-text">1980s</span></div>
+        </div>
+
+        <!-- 1990s -->
+        <div class="gallery-item reveal delay-1" data-decade="1990s" data-src="assets/images/gallery_1990s.jpg" data-caption="Brothers Club Cheeral – 1990s Era">
+          <img src="assets/images/gallery_1990s.jpg" alt="Brothers Club Cheeral 1990s team photo" loading="lazy" />
+          <div class="gallery-overlay"><span class="gallery-overlay-text">📅 1990s – Golden Era</span></div>
+          <div class="gallery-zoom-icon">🔍</div>
+        </div>
+
+        <div class="gallery-item reveal delay-2" data-decade="1990s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">🏆</div>
+            <strong>1990s</strong>
+            <span>Tournament victory<br/>Add your photo!</span>
+          </div>
+        </div>
+
+        <div class="gallery-item reveal delay-3" data-decade="1990s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">⚽</div>
+            <strong>1990s</strong>
+            <span>Match day memories<br/>Share yours!</span>
+          </div>
+        </div>
+
+        <!-- 2000s -->
+        <div class="gallery-item reveal delay-1" data-decade="2000s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">🌟</div>
+            <strong>2000s</strong>
+            <span>New millennium<br/>Upload memories!</span>
+          </div>
+        </div>
+
+        <div class="gallery-item reveal delay-2" data-decade="2000s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">👥</div>
+            <strong>2000s</strong>
+            <span>Team gatherings<br/>Add your photo!</span>
+          </div>
+        </div>
+
+        <div class="gallery-item reveal delay-3" data-decade="2000s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">📸</div>
+            <strong>2000s</strong>
+            <span>Club celebrations<br/>Share yours!</span>
+          </div>
+        </div>
+
+        <!-- 2010s -->
+        <div class="gallery-item reveal delay-1" data-decade="2010s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">🎯</div>
+            <strong>2010s</strong>
+            <span>Modern era photos<br/>Upload yours!</span>
+          </div>
+        </div>
+
+        <div class="gallery-item reveal delay-2" data-decade="2010s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">⚡</div>
+            <strong>2010s</strong>
+            <span>Action shots<br/>Share yours!</span>
+          </div>
+        </div>
+
+        <!-- 2020s -->
+        <div class="gallery-item reveal delay-1" data-decade="2020s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">🆕</div>
+            <strong>2020s</strong>
+            <span>Recent memories<br/>Upload yours!</span>
+          </div>
+        </div>
+
+        <div class="gallery-item reveal delay-2" data-decade="2020s">
+          <div class="gallery-placeholder">
+            <div class="ph-icon">📱</div>
+            <strong>2020s</strong>
+            <span>Latest events<br/>Add your photo!</span>
+          </div>
+        </div>
+
+      </div><!-- /gallery-grid -->
+
+      <!-- Upload Section -->
+      <div class="upload-section reveal" id="uploadDropzone" aria-label="Photo upload area">
+        <div class="upload-icon">📤</div>
+        <h3 class="upload-title">Share Your Memories with the Club</h3>
+        <p class="upload-desc">
+          Have old club photos or recent match shots? Drop them here to add to our archive.<br/>
+          Drag &amp; drop images or click the button below to select files.
+        </p>
+        <input type="file" id="fileInput" accept="image/*" multiple aria-label="Select photos to upload" />
+        <button class="btn btn-primary" id="uploadBtn" type="button">
+          📁 Select Photos
+        </button>
+        <p class="upload-note">Supported formats: JPG, PNG, WEBP · Max 10 files at once</p>
+        <p id="uploadCount" style="color: var(--accent); font-size: 0.85rem; margin-top: 0.75rem;"></p>
+        <div class="upload-preview" id="uploadPreview"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-label="Photo viewer" aria-modal="true">
+    <button id="lbClose" class="lightbox-close" aria-label="Close photo viewer">✕</button>
+    <div class="lightbox-inner">
+      <img id="lbImg" src="" alt="Gallery photo enlarged" />
+      <p id="lbCaption" class="lightbox-caption"></p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="assets/logo.png" alt="Brothers Club Cheeral" class="footer-logo" />
+          <div class="footer-club-name">Brothers Club Cheeral</div>
+          <p class="footer-tagline">United by Brotherhood, Driven by Passion.<br/>Cheeral, Kerala · Est. 1988</p>
+          <div class="footer-social">
+            <a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener" class="footer-social-btn fb" aria-label="Facebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Navigation</div>
+          <ul class="footer-links">
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="history.html">📸 History &amp; Gallery</a></li>
+            <li><a href="team.html">👥 Team &amp; Legends</a></li>
+            <li><a href="trophies.html">🏆 Trophies</a></li>
+            <li><a href="contact.html">📬 Contact &amp; Join</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Club Info</div>
+          <ul class="footer-links">
+            <li><a href="#">📅 Founded: 1988</a></li>
+            <li><a href="#">📋 Reg. No: 27/88</a></li>
+            <li><a href="#">📍 Cheeral, Kerala</a></li>
+            <li><a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener">🌐 Facebook Page</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Gallery</div>
+          <ul class="footer-links">
+            <li><a href="#filter-1980s">📷 1980s Photos</a></li>
+            <li><a href="#filter-1990s">📷 1990s Photos</a></li>
+            <li><a href="#filter-2000s">📷 2000s Photos</a></li>
+            <li><a href="#uploadDropzone">📤 Upload Photos</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 Brothers Club Cheeral. All rights reserved.</p>
+        <p class="footer-reg">REG. NO: 27/88 · EST. 1988 · CHEERAL, KERALA</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

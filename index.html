@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Brothers Club Cheeral (Reg. 27/88) – 1988 മുതൽ ഒരുമിച്ച്, ഫുട്ബോളിൽ ഒരു ബ്രദർഹുഡ്. Official website of Brothers Club Cheeral." />
+  <title>Brothers Club Cheeral | Home</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════ NAVBAR ═══════════════ -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand" aria-label="Brothers Club Cheeral Home">
+        <img src="assets/logo.png" alt="Brothers Club Cheeral Logo" class="nav-logo" />
+        <div class="nav-brand-text">
+          <div class="club-name">Brothers Club Cheeral</div>
+          <div class="reg-no">Reg. No: 27/88</div>
+        </div>
+      </a>
+
+      <ul class="nav-links" id="navLinks" role="menubar">
+        <li role="none"><a href="index.html" role="menuitem" id="nav-home">Home</a></li>
+        <li role="none"><a href="history.html" role="menuitem" id="nav-history">History &amp; Gallery</a></li>
+        <li role="none"><a href="team.html" role="menuitem" id="nav-team">Team &amp; Legends</a></li>
+        <li role="none"><a href="trophies.html" role="menuitem" id="nav-trophies">Trophies</a></li>
+        <li role="none"><a href="contact.html" role="menuitem" id="nav-contact">Contact</a></li>
+        <li role="none">
+          <a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener noreferrer" class="nav-fb" aria-label="Facebook">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Facebook
+          </a>
+        </li>
+      </ul>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ HERO SLIDER ═══════════════ -->
+  <section class="hero" aria-label="Hero showcase">
+    <div class="hero-slides">
+
+      <!-- Slide 1 -->
+      <div class="hero-slide active">
+        <div class="hero-slide-bg" style="background-image: url('assets/images/hero1.jpg');"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="hero-badge">⚽ Since 1988 · Cheeral, Kerala</div>
+          <img src="assets/logo.png" alt="Brothers Club Cheeral" class="hero-logo" />
+          <h1 class="hero-title">Brothers Club</h1>
+          <p class="hero-tagline">"United by Brotherhood, Driven by Passion"</p>
+          <p class="hero-reg">Registered No: 27/88</p>
+          <div class="hero-actions">
+            <a href="history.html" class="btn btn-primary">📸 Photo Gallery</a>
+            <a href="contact.html" class="btn btn-outline">Join the Club</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="hero-slide">
+        <div class="hero-slide-bg" style="background-image: url('assets/images/hero2.jpg');"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="hero-badge">🏆 Champions of the Field</div>
+          <img src="assets/logo.png" alt="Brothers Club Cheeral" class="hero-logo" />
+          <h1 class="hero-title">Hall of Fame</h1>
+          <p class="hero-tagline">"Decades of glory, countless victories"</p>
+          <p class="hero-reg">Brothers Club Cheeral · Est. 1988</p>
+          <div class="hero-actions">
+            <a href="trophies.html" class="btn btn-primary">🏆 View Trophies</a>
+            <a href="team.html" class="btn btn-outline">Meet the Legends</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="hero-slide">
+        <div class="hero-slide-bg" style="background-image: url('assets/images/hero3.jpg');"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="hero-badge">👥 One Brotherhood</div>
+          <img src="assets/logo.png" alt="Brothers Club Cheeral" class="hero-logo" />
+          <h1 class="hero-title">Our Team</h1>
+          <p class="hero-tagline">"From legends of the past to stars of today"</p>
+          <p class="hero-reg">Cheeral, Kerala · Est. 1988</p>
+          <div class="hero-actions">
+            <a href="team.html" class="btn btn-primary">👥 Meet the Team</a>
+            <a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener" class="btn btn-outline">Follow Us</a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /hero-slides -->
+
+    <!-- Arrows -->
+    <button class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="Previous slide">&#8592;</button>
+    <button class="hero-arrow hero-arrow-next" id="heroNext" aria-label="Next slide">&#8594;</button>
+
+    <!-- Dots -->
+    <div class="hero-dots" role="tablist" aria-label="Slide navigation">
+      <button class="hero-dot active" data-slide="0" aria-label="Slide 1" role="tab"></button>
+      <button class="hero-dot" data-slide="1" aria-label="Slide 2" role="tab"></button>
+      <button class="hero-dot" data-slide="2" aria-label="Slide 3" role="tab"></button>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="hero-scroll" aria-hidden="true">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════ STATS BAR ═══════════════ -->
+  <div class="stats-bar" aria-label="Club statistics">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <span class="stat-number" data-count="1988" data-suffix="">1988</span>
+          <div class="stat-label">Founded</div>
+        </div>
+        <div class="stat-item reveal delay-1">
+          <span class="stat-number" data-count="37" data-suffix="+">37+</span>
+          <div class="stat-label">Years Active</div>
+        </div>
+        <div class="stat-item reveal delay-2">
+          <span class="stat-number" data-count="25" data-suffix="+">25+</span>
+          <div class="stat-label">Trophies Won</div>
+        </div>
+        <div class="stat-item reveal delay-3">
+          <span class="stat-number" data-count="100" data-suffix="+">100+</span>
+          <div class="stat-label">Members &amp; Alumni</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ABOUT SECTION ═══════════════ -->
+  <section class="about-section section" id="about" aria-labelledby="about-heading">
+    <div class="container">
+      <div class="about-grid">
+        <!-- Text -->
+        <div>
+          <div class="about-badge reveal">⚽ Our Story</div>
+          <h2 class="about-title reveal delay-1" id="about-heading">
+            Brotherhood Born on<br/><span>the Football Field</span>
+          </h2>
+          <p class="about-text reveal delay-2">
+            Brothers Club Cheeral (Reg. No: 27/88) was founded in 1988 in Cheeral, Kerala — born from a shared love of football and a spirit of brotherhood that has never faded. What began as a group of passionate young men kicking a ball on open grounds has grown into a proud institution with decades of memories, trophies, and lasting friendships.
+          </p>
+          <p class="about-text reveal delay-3">
+            Over more than 37 years, the club has nurtured local talent, competed in regional tournaments, and built a legacy that lives on through every generation of players. Brothers Club is more than a football team — it's a family.
+          </p>
+          <div class="about-actions reveal delay-4">
+            <a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener noreferrer" class="btn btn-fb">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Follow on Facebook
+            </a>
+            <a href="history.html" class="btn btn-ghost">📸 View History</a>
+          </div>
+        </div>
+
+        <!-- Image -->
+        <div class="about-image-wrap reveal delay-2">
+          <div class="about-glow"></div>
+          <img src="assets/logo.png" alt="Brothers Club Cheeral Crest" class="about-crest" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ NEWS & ANNOUNCEMENTS ═══════════════ -->
+  <section class="news-section section" id="news" aria-labelledby="news-heading">
+    <div class="container">
+      <p class="section-subtitle reveal">LATEST UPDATES</p>
+      <h2 class="section-title reveal delay-1" id="news-heading">News &amp; Announcements</h2>
+      <div class="section-divider reveal delay-2"></div>
+
+      <div class="news-grid">
+
+        <!-- News Card 1 -->
+        <article class="news-card reveal delay-1">
+          <div class="news-card-img" style="background: linear-gradient(135deg,#1a3a8c,#0d1b3e);">🏆</div>
+          <div class="news-card-top">
+            <span class="news-tag tag-event">Event</span>
+            <span class="news-date">July 2026</span>
+          </div>
+          <div class="news-card-body">
+            <h3 class="news-title">Annual Brothers Club Cheeral Tournament 2026</h3>
+            <p class="news-excerpt">The annual football tournament is being planned for this year. Stay tuned for dates, venue, and registration details. All alumni and current members are welcome to participate.</p>
+            <a href="contact.html" class="news-more">Register Interest →</a>
+          </div>
+        </article>
+
+        <!-- News Card 2 -->
+        <article class="news-card reveal delay-2">
+          <div class="news-card-img" style="background: linear-gradient(135deg,#0d3b20,#0d1b3e);">📸</div>
+          <div class="news-card-top">
+            <span class="news-tag tag-announce">Announcement</span>
+            <span class="news-date">July 2026</span>
+          </div>
+          <div class="news-card-body">
+            <h3 class="news-title">Photo Archive – Share Your Memories!</h3>
+            <p class="news-excerpt">We are building our digital photo archive. If you have old photographs from club matches, celebrations, or gatherings from any decade, please upload them in our History &amp; Gallery section.</p>
+            <a href="history.html" class="news-more">Upload Photos →</a>
+          </div>
+        </article>
+
+        <!-- News Card 3 -->
+        <article class="news-card reveal delay-3">
+          <div class="news-card-img" style="background: linear-gradient(135deg,#3b1a0d,#0d1b3e);">👥</div>
+          <div class="news-card-top">
+            <span class="news-tag tag-news">News</span>
+            <span class="news-date">June 2026</span>
+          </div>
+          <div class="news-card-body">
+            <h3 class="news-title">New Members Welcome – Join Brothers Club Cheeral</h3>
+            <p class="news-excerpt">Brothers Club Cheeral is welcoming new members who share our passion for football and brotherhood. Connect with us through Facebook or fill in the membership form on our Contact page.</p>
+            <a href="contact.html" class="news-more">Join the Family →</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ QUICK LINKS ═══════════════ -->
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+
+        <a href="history.html" class="news-card" style="text-decoration:none; padding: 1.75rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
+          <div style="font-size:2.5rem;">📸</div>
+          <strong style="font-family: var(--font-display); font-size:1.1rem;">History &amp; Gallery</strong>
+          <p style="color:var(--text-muted); font-size:0.82rem;">Browse photos by decade and upload your own memories</p>
+        </a>
+
+        <a href="team.html" class="news-card" style="text-decoration:none; padding: 1.75rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
+          <div style="font-size:2.5rem;">⭐</div>
+          <strong style="font-family: var(--font-display); font-size:1.1rem;">Team &amp; Legends</strong>
+          <p style="color:var(--text-muted); font-size:0.82rem;">Celebrate the Pazhaya Kalikkaar and current squad</p>
+        </a>
+
+        <a href="trophies.html" class="news-card" style="text-decoration:none; padding: 1.75rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
+          <div style="font-size:2.5rem;">🏆</div>
+          <strong style="font-family: var(--font-display); font-size:1.1rem;">Trophies &amp; Achievements</strong>
+          <p style="color:var(--text-muted); font-size:0.82rem;">Our Hall of Fame – every tournament won</p>
+        </a>
+
+        <a href="contact.html" class="news-card" style="text-decoration:none; padding: 1.75rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
+          <div style="font-size:2.5rem;">📬</div>
+          <strong style="font-family: var(--font-display); font-size:1.1rem;">Contact &amp; Join</strong>
+          <p style="color:var(--text-muted); font-size:0.82rem;">Get in touch with club officials or become a member</p>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Brand -->
+        <div class="footer-brand">
+          <img src="assets/logo.png" alt="Brothers Club Cheeral" class="footer-logo" />
+          <div class="footer-club-name">Brothers Club Cheeral</div>
+          <p class="footer-tagline">United by Brotherhood, Driven by Passion.<br/>Serving the beautiful game since 1988 in Cheeral, Kerala.</p>
+          <div class="footer-social">
+            <a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener" class="footer-social-btn fb" aria-label="Facebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div>
+          <div class="footer-col-title">Navigation</div>
+          <ul class="footer-links">
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="history.html">📸 History &amp; Gallery</a></li>
+            <li><a href="team.html">👥 Team &amp; Legends</a></li>
+            <li><a href="trophies.html">🏆 Trophies</a></li>
+            <li><a href="contact.html">📬 Contact &amp; Join</a></li>
+          </ul>
+        </div>
+
+        <!-- Quick Info -->
+        <div>
+          <div class="footer-col-title">Club Info</div>
+          <ul class="footer-links">
+            <li><a href="#">📅 Founded: 1988</a></li>
+            <li><a href="#">📋 Reg. No: 27/88</a></li>
+            <li><a href="#">📍 Cheeral, Kerala</a></li>
+            <li><a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener">🌐 Facebook Page</a></li>
+          </ul>
+        </div>
+
+        <!-- Connect -->
+        <div>
+          <div class="footer-col-title">Connect</div>
+          <ul class="footer-links">
+            <li><a href="contact.html">📞 Contact Officials</a></li>
+            <li><a href="contact.html">✉️ Send Message</a></li>
+            <li><a href="history.html">📤 Upload Photos</a></li>
+            <li><a href="contact.html">🤝 Become a Member</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 Brothers Club Cheeral. All rights reserved.</p>
+        <p class="footer-reg">REG. NO: 27/88 · EST. 1988 · CHEERAL, KERALA</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
