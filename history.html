@@ -206,7 +206,6 @@
         const q = query(photosRef, where("isApproved", "==", true), orderBy("createdAt", "desc"));
 
         onSnapshot(q, (snapshot) => {
-          // Remove dynamically rendered items before updating
           const existingDynamicItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
           existingDynamicItems.forEach(el => el.remove());
 
@@ -264,6 +263,18 @@
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
+    }
+
+    // Helper: Ensure valid GitHub Token from localStorage or prompt
+    async function getOrPromptGitHubToken(forcePrompt = false) {
+      let token = githubConfig.token;
+      if (!token || forcePrompt) {
+        token = prompt("🔑 Please enter your GitHub Personal Access Token (PAT) with repo contents permission:");
+        if (token) {
+          githubConfig.setToken(token);
+        }
+      }
+      return token;
     }
 
     // 2. UPLOAD & CLIENT-SIDE COMPRESSION & GITHUB CONTENTS API
@@ -325,6 +336,14 @@
         return;
       }
 
+      // Ensure we have a token before starting upload
+      let currentToken = await getOrPromptGitHubToken(false);
+      if (!currentToken) {
+        uploadStatus.className = "upload-status error";
+        uploadStatus.textContent = "⚠️ GitHub Personal Access Token is required to upload.";
+        return;
+      }
+
       uploadPreview.innerHTML = "";
       progressContainer.style.display = "block";
       uploadStatus.className = "upload-status info";
@@ -335,7 +354,7 @@
       for (let i = 0; i < validFiles.length; i++) {
         const file = validFiles[i];
         try {
-          // A. Client-Side Image Compression using browser-image-compression
+          // A. Client-Side Image Compression
           progressText.textContent = `Compressing ${file.name} (${i + 1}/${validFiles.length})...`;
           progressBar.style.width = `${((i / validFiles.length) * 40).toFixed(0)}%`;
 
@@ -348,14 +367,12 @@
           let compressedBlob = file;
           if (window.imageCompression) {
             compressedBlob = await window.imageCompression(file, compressionOptions);
-            console.log(`Original: ${(file.size/1024).toFixed(1)}KB -> Compressed: ${(compressedBlob.size/1024).toFixed(1)}KB`);
           }
 
-          // Convert compressed Blob to Base64
           const base64Content = await blobToBase64(compressedBlob);
 
           // B. Upload to GitHub Repository via GitHub Contents API
-          progressText.textContent = `Uploading ${file.name} to GitHub repository...`;
+          progressText.textContent = `Uploading ${file.name} to GitHub...`;
           progressBar.style.width = `${(40 + (i / validFiles.length) * 40).toFixed(0)}%`;
 
           const timeStamp = Date.now();
@@ -367,17 +384,13 @@
           const filePath = `${ghFolderPath}/${generatedFileName}`;
           const ghApiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${filePath}`;
 
-          const headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/vnd.github.v3+json"
-          };
-          if (githubConfig.token && githubConfig.token !== "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN") {
-            headers["Authorization"] = `token ${githubConfig.token}`;
-          }
-
-          const ghResponse = await fetch(ghApiUrl, {
+          let ghResponse = await fetch(ghApiUrl, {
             method: "PUT",
-            headers: headers,
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/vnd.github.v3+json",
+              "Authorization": `token ${currentToken}`
+            },
             body: JSON.stringify({
               message: `Upload gallery photo: ${generatedFileName}`,
               content: base64Content,
@@ -385,15 +398,35 @@
             })
           });
 
+          // Handle Bad Credentials (401)
+          if (ghResponse.status === 401) {
+            localStorage.removeItem("gh_token");
+            currentToken = await getOrPromptGitHubToken(true);
+            if (currentToken) {
+              ghResponse = await fetch(ghApiUrl, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Accept": "application/vnd.github.v3+json",
+                  "Authorization": `token ${currentToken}`
+                },
+                body: JSON.stringify({
+                  message: `Upload gallery photo: ${generatedFileName}`,
+                  content: base64Content,
+                  branch: githubConfig.branch || "main"
+                })
+              });
+            }
+          }
+
           if (!ghResponse.ok) {
             const errData = await ghResponse.json();
-            throw new Error(`GitHub Upload API Error: ${errData.message || ghResponse.statusText}`);
+            throw new Error(`GitHub API Error: ${errData.message || ghResponse.statusText}`);
           }
 
           const ghData = await ghResponse.json();
           const commitSha = ghData.content?.sha || null;
 
-          // GitHub Raw URL
           const rawUrl = `https://raw.githubusercontent.com/${githubConfig.owner}/${githubConfig.repo}/${githubConfig.branch || 'main'}/${filePath}`;
 
           // C. Create Document in Firestore Collection `gallery_photos`
@@ -405,12 +438,11 @@
             fileName: generatedFileName,
             caption: cleanBaseName.replace(/_/g, " "),
             createdAt: serverTimestamp(),
-            isApproved: false, // Default pending state
+            isApproved: false,
             githubSha: commitSha,
             filePath: filePath
           });
 
-          // Preview thumbnail
           const previewThumb = document.createElement("div");
           previewThumb.className = "preview-item";
           previewThumb.innerHTML = `

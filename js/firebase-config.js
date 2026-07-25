@@ -1,5 +1,4 @@
 // Firebase & GitHub API Configuration for Brothers Club Cheeral
-// Fill in your credentials below
 
 export const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
@@ -15,5 +14,12 @@ export const githubConfig = {
   repo: "brothers-club-cheeral",
   branch: "main",
   folder: "images/gallery",
-  token: "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"
+  get token() {
+    return localStorage.getItem("gh_token") || "";
+  },
+  setToken(newToken) {
+    if (newToken) {
+      localStorage.setItem("gh_token", newToken.trim());
+    }
+  }
 };

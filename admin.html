@@ -22,6 +22,7 @@
       </a>
       <div class="admin-nav-actions" id="adminNavActions" style="display: none;">
         <span class="admin-user-email" id="adminUserEmail">admin@brothersclub.com</span>
+        <button id="configTokenBtn" class="btn btn-outline btn-sm">🔑 Set GitHub Token</button>
         <a href="history.html" class="btn btn-outline btn-sm" target="_blank">🌐 View Gallery</a>
         <button id="logoutBtn" class="btn btn-primary btn-sm">🔒 Sign Out</button>
       </div>
@@ -178,6 +179,7 @@
     const loginBtn = document.getElementById("loginBtn");
     const authError = document.getElementById("authError");
     const logoutBtn = document.getElementById("logoutBtn");
+    const configTokenBtn = document.getElementById("configTokenBtn");
 
     const pendingGrid = document.getElementById("pendingGrid");
     const approvedGrid = document.getElementById("approvedGrid");
@@ -196,6 +198,16 @@
     const editDecade = document.getElementById("editDecade");
     const closeEditModal = document.getElementById("closeEditModal");
     const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    // Token Prompt Config
+    configTokenBtn.addEventListener("click", () => {
+      const currentToken = githubConfig.token || "";
+      const newToken = prompt("🔑 Enter / Update your GitHub Personal Access Token (PAT):", currentToken);
+      if (newToken !== null) {
+        githubConfig.setToken(newToken);
+        showToast("GitHub Token saved to browser!", "success");
+      }
+    });
 
     // Tab Navigation
     const tabPendingBtn = document.getElementById("tabPendingBtn");
@@ -432,7 +444,7 @@
           await deleteFromGitHub(filePath, sha);
         }
 
-        showToast("Photo deleted permanently from Firestore & GitHub repository.", "success");
+        showToast("Photo deleted permanently from Firestore & GitHub.", "success");
       } catch (error) {
         console.error("Error deleting photo:", error);
         showToast("Failed to delete photo: " + error.message, "error");
@@ -441,6 +453,13 @@
 
     // GitHub Contents API Delete Helper
     async function deleteFromGitHub(filePath, sha) {
+      let token = githubConfig.token;
+      if (!token) {
+        token = prompt("🔑 Enter your GitHub Personal Access Token to authorize deletion:");
+        if (token) githubConfig.setToken(token);
+        else return;
+      }
+
       let fileSha = sha;
       const ghFolderPath = githubConfig.folder ? githubConfig.folder.replace(/\/$/, '') : 'images/gallery';
       const targetPath = filePath || `${ghFolderPath}/${filePath}`;
@@ -448,13 +467,10 @@
 
       const headers = {
         "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `token ${token}`
       };
-      if (githubConfig.token && githubConfig.token !== "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN") {
-        headers["Authorization"] = `token ${githubConfig.token}`;
-      }
 
-      // If SHA missing, fetch file details from GitHub to retrieve current commit SHA
       if (!fileSha) {
         try {
           const getRes = await fetch(ghApiUrl, { headers });
@@ -469,7 +485,7 @@
 
       if (fileSha) {
         try {
-          const delRes = await fetch(ghApiUrl, {
+          let delRes = await fetch(ghApiUrl, {
             method: "DELETE",
             headers: headers,
             body: JSON.stringify({
@@ -478,12 +494,26 @@
               branch: githubConfig.branch || "main"
             })
           });
-          if (!delRes.ok) {
-            const errBody = await delRes.json();
-            console.warn("GitHub Delete API response:", errBody);
+
+          if (delRes.status === 401) {
+            localStorage.removeItem("gh_token");
+            const newToken = prompt("🔑 GitHub token invalid/expired. Please re-enter your GitHub PAT:");
+            if (newToken) {
+              githubConfig.setToken(newToken);
+              headers["Authorization"] = `token ${newToken}`;
+              delRes = await fetch(ghApiUrl, {
+                method: "DELETE",
+                headers: headers,
+                body: JSON.stringify({
+                  message: `Delete gallery photo: ${targetPath}`,
+                  sha: fileSha,
+                  branch: githubConfig.branch || "main"
+                })
+              });
+            }
           }
         } catch (err) {
-          console.warn("GitHub Delete API call error:", err);
+          console.warn("GitHub Delete API call notice:", err);
         }
       }
     }
