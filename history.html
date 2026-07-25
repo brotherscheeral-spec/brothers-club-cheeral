@@ -77,16 +77,25 @@
 
         <!-- Album / Folder Name Input -->
         <div class="album-name-wrap">
-          <label for="albumNameInput" class="album-name-label">📁 Album / Folder Name <span style="color: var(--accent);">*</span></label>
+          <label class="album-name-label">📁 Album / Folder</label>
+
+          <!-- Existing folder dropdown -->
+          <select id="folderSelect" class="album-name-input" aria-label="Select existing folder or create new">
+            <option value="__auto__">⏰ Auto — use current date &amp; time</option>
+            <option value="__new__">➕ New folder…</option>
+          </select>
+
+          <!-- New folder name input — shown only when __new__ is selected -->
           <input
             type="text"
             id="albumNameInput"
             class="album-name-input"
-            placeholder="e.g. 2024 Annual Meet, 1990s Matches, Club Celebration…"
+            placeholder="Enter new folder name…"
             maxlength="60"
-            aria-label="Album or folder name for these photos"
+            aria-label="New album or folder name"
+            style="display:none; margin-top: 0.5rem;"
           />
-          <p class="album-name-hint">Photos will be grouped under this album in the gallery.</p>
+          <p class="album-name-hint" id="folderHint">Select an existing album or create a new one. Leave on Auto to use today's date.</p>
         </div>
 
         <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple aria-label="Select photos to upload" style="display: none;" />
@@ -261,6 +270,8 @@
 
       // Re-apply current active filter
       applyFolderFilter(activeFilter);
+      // Sync upload dropdown with latest folders
+      populateFolderDropdown();
     }
 
     // Bind the "All Photos" button
@@ -485,19 +496,74 @@
       }
     });
 
+    // Populate folder dropdown from knownFolders
+    function populateFolderDropdown() {
+      const sel = document.getElementById("folderSelect");
+      if (!sel) return;
+      // Remove old dynamic options (keep __auto__ and __new__)
+      Array.from(sel.options).forEach(o => {
+        if (o.value !== "__auto__" && o.value !== "__new__") o.remove();
+      });
+      const slugs = Object.keys(knownFolders);
+      slugs.forEach(slug => {
+        const opt = document.createElement("option");
+        opt.value = slug;
+        opt.textContent = `📁 ${knownFolders[slug]}`;
+        // Insert before the __new__ option
+        sel.insertBefore(opt, sel.querySelector('option[value="__new__"]'));
+      });
+    }
+
+    // Show/hide new folder input based on dropdown selection
+    document.getElementById("folderSelect").addEventListener("change", function() {
+      const newInput = document.getElementById("albumNameInput");
+      const hint = document.getElementById("folderHint");
+      if (this.value === "__new__") {
+        newInput.style.display = "block";
+        newInput.focus();
+        hint.textContent = "Type the new folder name above.";
+      } else {
+        newInput.style.display = "none";
+        newInput.value = "";
+        hint.textContent = this.value === "__auto__"
+          ? "Auto folder: today's date & time will be used."
+          : `Photos will be added to the "${knownFolders[this.value] || this.value}" album.`;
+      }
+    });
+
     // File Handler
     async function handleFiles(files) {
-      // Validate Album Name
+      const folderSelect = document.getElementById("folderSelect");
       const albumNameInput = document.getElementById("albumNameInput");
-      const albumLabelRaw = albumNameInput ? albumNameInput.value.trim() : "";
-      if (!albumLabelRaw) {
-        uploadStatus.className = "upload-status error";
-        uploadStatus.textContent = "⚠️ Please enter an Album / Folder Name before uploading.";
-        albumNameInput && albumNameInput.focus();
-        return;
+      const selectedVal = folderSelect ? folderSelect.value : "__auto__";
+
+      let albumLabelRaw = "";
+      let albumSlug = "";
+
+      if (selectedVal === "__new__") {
+        // User wants a new folder — use the text input
+        albumLabelRaw = albumNameInput ? albumNameInput.value.trim() : "";
+        if (!albumLabelRaw) {
+          // Auto-generate with date if they left it blank
+          const now = new Date();
+          albumLabelRaw = now.toLocaleDateString("en-IN", { year:"numeric", month:"long", day:"numeric" }) +
+            " " + now.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
+        }
+        albumSlug = albumLabelRaw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "general";
+      } else if (selectedVal === "__auto__" || !selectedVal) {
+        // Auto — use current date & time
+        const now = new Date();
+        albumLabelRaw = now.toLocaleDateString("en-IN", { year:"numeric", month:"long", day:"numeric" }) +
+          " " + now.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
+        albumSlug = albumLabelRaw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "general";
+      } else {
+        // Existing folder selected
+        albumSlug = selectedVal;
+        albumLabelRaw = knownFolders[selectedVal] || selectedVal;
       }
-      // Slugify for use in GitHub path
-      const albumSlug = albumLabelRaw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "general";
+
+      // Slugify safety
+      albumSlug = albumSlug || "general";
 
       if (files.length > 10) {
         uploadStatus.className = "upload-status error";

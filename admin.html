@@ -325,7 +325,8 @@
       }
     });
 
-    // Real-time Listener
+    // Track all known folders (slug -> label) for Move feature
+    let allFolders = {};
     let unsubscribeAll = null;
 
     function initRealtimeListeners() {
@@ -344,11 +345,15 @@
         const allDocs = snapshot.docs;
         const pendingDocs = [];
         const approvedDocs = [];
+        allFolders = {};
 
         allDocs.forEach(docSnap => {
           const data = docSnap.data();
           if (data.isApproved === true) {
             approvedDocs.push(docSnap);
+            if (data.folder && data.folderLabel) {
+              allFolders[data.folder] = data.folderLabel;
+            }
           } else {
             pendingDocs.push(docSnap);
           }
@@ -428,6 +433,14 @@
         const id = docSnap.id;
         const caption = data.caption || data.fileName || 'Untitled';
         const decade = data.decade || '2020s';
+        const currentFolder = data.folder || '';
+        const currentFolderLabel = data.folderLabel || 'General';
+
+        // Build folder options for move dropdown
+        const folderOptions = Object.entries(allFolders)
+          .filter(([slug]) => slug !== currentFolder)
+          .map(([slug, label]) => `<option value="${slug}" data-label="${label}">${label}</option>`)
+          .join("");
 
         const card = document.createElement("div");
         card.className = "admin-card photo-card";
@@ -439,7 +452,14 @@
           <div class="card-body">
             <h4 class="card-filename" title="${caption}">${caption}</h4>
             <p class="card-date">🏷️ ${decade}</p>
-            ${data.folderLabel ? `<p class="card-folder-badge">📁 Album: <strong>${data.folderLabel}</strong></p>` : ''}
+            <p class="card-folder-badge">📁 Album: <strong>${currentFolderLabel}</strong></p>
+            ${folderOptions ? `
+            <div class="move-folder-wrap">
+              <select class="move-folder-select" data-id="${id}">
+                <option value="">📂 Move to folder…</option>
+                ${folderOptions}
+              </select>
+            </div>` : ''}
             <div class="card-actions col-3">
               <button class="btn btn-outline btn-sm edit-btn" data-id="${id}" data-caption="${caption}" data-decade="${decade}">
                 ✏️ Edit
@@ -462,6 +482,29 @@
       approvedGrid.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", (e) => deletePhoto(e.target.dataset.id, e.target.dataset.path, e.target.dataset.sha));
       });
+      // Move to folder
+      approvedGrid.querySelectorAll(".move-folder-select").forEach(sel => {
+        sel.addEventListener("change", async function() {
+          const newSlug = this.value;
+          const docId = this.dataset.id;
+          if (!newSlug) return;
+          const selectedOption = this.options[this.selectedIndex];
+          const newLabel = selectedOption.dataset.label || newSlug;
+          await movePhoto(docId, newSlug, newLabel);
+          this.value = ""; // reset dropdown
+        });
+      });
+    }
+
+    // Move photo to a different folder
+    async function movePhoto(id, newFolderSlug, newFolderLabel) {
+      try {
+        const docRef = doc(db, "gallery_photos", id);
+        await updateDoc(docRef, { folder: newFolderSlug, folderLabel: newFolderLabel });
+        showToast(`📁 Photo moved to "${newFolderLabel}"!`, "success");
+      } catch (err) {
+        showToast("Failed to move photo: " + err.message, "error");
+      }
     }
 
     // Approve Photo Action
