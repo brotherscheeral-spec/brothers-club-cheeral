@@ -1948,9 +1948,26 @@ h1, h2, h3, h4, h5 {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
-.toast.fade-out {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.4s ease;
+/* Direct Admin Delete Button on Gallery Items */
+.admin-delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background: rgba(198, 40, 40, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, background 0.2s ease;
 }
+.admin-delete-btn:hover {
+  background: #b71c1c;
+  transform: scale(1.08);
+}
+
 

@@ -182,21 +182,47 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
+      getAuth, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
       getFirestore, 
       collection, 
       query, 
       orderBy, 
       onSnapshot, 
       addDoc, 
+      deleteDoc,
+      doc,
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { firebaseConfig, githubConfig } from "./js/firebase-config.js";
 
-    // Initialize Firebase App & Firestore
+    // Initialize Firebase App, Auth & Firestore
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // 1. REAL-TIME GALLERY PUBLIC LISTENER (Renders any photo where isApproved === true)
+    const ALLOWED_ADMIN_EMAILS = [
+      "farizpaachi@gmail.com",
+      "brotherscheeral@gmail.com",
+      "brothersclubcheeral@gmail.com"
+    ];
+
+    let isAdminLoggedIn = false;
+
+    // Monitor Auth State for Admin Direct Delete Access
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const userEmail = (user.email || "").toLowerCase();
+        isAdminLoggedIn = ALLOWED_ADMIN_EMAILS.some(e => e.toLowerCase() === userEmail) || ALLOWED_ADMIN_EMAILS.length === 0;
+      } else {
+        isAdminLoggedIn = false;
+      }
+      listenToApprovedPhotos();
+    });
+
+    // 1. REAL-TIME GALLERY PUBLIC LISTENER
     const galleryGrid = document.getElementById("galleryGrid");
 
     function listenToApprovedPhotos() {
@@ -215,6 +241,7 @@
 
           snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
+            const docId = docSnap.id;
             
             // Only render photos where isApproved === true
             if (data.isApproved === true) {
@@ -225,17 +252,49 @@
               itemEl.className = "gallery-item firestore-gallery-item active";
               itemEl.style.opacity = "1";
               itemEl.style.transform = "none";
+              itemEl.style.position = "relative";
               itemEl.setAttribute("data-decade", decade);
               itemEl.setAttribute("data-src", data.imageUrl);
               itemEl.setAttribute("data-caption", caption);
 
+              let deleteBtnHtml = "";
+              if (isAdminLoggedIn) {
+                deleteBtnHtml = `<button type="button" class="admin-delete-btn" title="Delete Photo">🗑️ Delete</button>`;
+              }
+
               itemEl.innerHTML = `
                 <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
+                ${deleteBtnHtml}
                 <div class="gallery-overlay">
                   <span class="gallery-overlay-text">📸 ${caption}</span>
                 </div>
                 <div class="gallery-zoom-icon">🔍</div>
               `;
+
+              // Admin Direct Delete Action
+              if (isAdminLoggedIn) {
+                const delBtn = itemEl.querySelector(".admin-delete-btn");
+                if (delBtn) {
+                  delBtn.addEventListener("click", async (e) => {
+                    e.stopPropagation(); // Don't open lightbox
+                    if (!confirm(`Are you sure you want to delete "${caption}" permanently?`)) return;
+
+                    try {
+                      // 1. Delete Firestore Document
+                      await deleteDoc(doc(db, "gallery_photos", docId));
+                      
+                      // 2. Delete file from GitHub
+                      if (data.filePath || data.githubSha) {
+                        await deleteFromGitHub(data.filePath, data.githubSha);
+                      }
+                      alert("Photo deleted successfully!");
+                    } catch (err) {
+                      console.error("Error deleting photo:", err);
+                      alert("Failed to delete photo: " + err.message);
+                    }
+                  });
+                }
+              }
 
               // Lightbox Event
               itemEl.addEventListener("click", () => {
@@ -260,7 +319,72 @@
       }
     }
 
-    listenToApprovedPhotos();
+    // GitHub Delete Helper for Direct Admin Action
+    async function deleteFromGitHub(filePath, sha) {
+      let token = githubConfig.token;
+      if (!token) {
+        token = prompt("🔑 Enter your GitHub Personal Access Token to authorize deletion:");
+        if (token) githubConfig.setToken(token);
+        else return;
+      }
+
+      let fileSha = sha;
+      const ghFolderPath = githubConfig.folder ? githubConfig.folder.replace(/\/$/, '') : 'images/gallery';
+      const targetPath = filePath || `${ghFolderPath}/${filePath}`;
+      const ghApiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${targetPath}`;
+
+      const headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+        "Authorization": `token ${token}`
+      };
+
+      if (!fileSha) {
+        try {
+          const getRes = await fetch(ghApiUrl, { headers });
+          if (getRes.ok) {
+            const getData = await getRes.json();
+            fileSha = getData.sha;
+          }
+        } catch (e) {
+          console.warn("Could not retrieve SHA from GitHub:", e);
+        }
+      }
+
+      if (fileSha) {
+        try {
+          let delRes = await fetch(ghApiUrl, {
+            method: "DELETE",
+            headers: headers,
+            body: JSON.stringify({
+              message: `Delete gallery photo: ${targetPath}`,
+              sha: fileSha,
+              branch: githubConfig.branch || "main"
+            })
+          });
+
+          if (delRes.status === 401) {
+            localStorage.removeItem("gh_token");
+            const newToken = prompt("🔑 GitHub token invalid/expired. Please re-enter your GitHub PAT:");
+            if (newToken) {
+              githubConfig.setToken(newToken);
+              headers["Authorization"] = `token ${newToken}`;
+              delRes = await fetch(ghApiUrl, {
+                method: "DELETE",
+                headers: headers,
+                body: JSON.stringify({
+                  message: `Delete gallery photo: ${targetPath}`,
+                  sha: fileSha,
+                  branch: githubConfig.branch || "main"
+                })
+              });
+            }
+          }
+        } catch (err) {
+          console.warn("GitHub Delete API call notice:", err);
+        }
+      }
+    }
 
     // Helper: Convert File/Blob to Base64 string
     function blobToBase64(blob) {
