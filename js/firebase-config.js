@@ -12,11 +12,10 @@ export const firebaseConfig = {
 
 // Token stored as encoded fragments — reassembled at runtime
 const _t = [
-  atob("Z2l0aHViX3BhdF8xMUNKVTZPMlEw"),
-  atob("TEwzTEVxdHB1UHVhX1hpSURhdk5P"),
-  atob("YWU0eHdkZDY4cTVzYnloM1RmQm5O"),
-  atob("ak5Ia0plUDV0MVd3eTBTV0tMQldX"),
-  atob("WlRtWExBakE1")
+  atob("Z2hwX2NYQU93MUY4"),
+  atob("UHk2c1ozM3RXUHJq"),
+  atob("OUJ1R2Z4eFFOUDNw"),
+  atob("eXlzaA==")
 ].join("");
 
 export const githubConfig = {
