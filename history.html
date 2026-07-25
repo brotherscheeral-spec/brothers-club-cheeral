@@ -66,6 +66,9 @@
         </div>
       </div><!-- /gallery-grid -->
 
+      <!-- Pagination Bar -->
+      <div class="pagination-bar" id="paginationBar" style="display:none;"></div>
+
       <!-- Upload Section -->
       <div class="upload-section reveal" id="uploadDropzone" aria-label="Photo upload area">
         <div class="upload-icon">📤</div>
@@ -113,7 +116,7 @@
         </div>
 
         <p id="uploadStatus" class="upload-status"></p>
-        <p class="upload-note">Supported formats: JPG, PNG, WEBP · Max 10 files at once</p>
+        <p class="upload-note">Supported formats: JPG, PNG, WEBP · Select as many as you want (uploaded in batches)</p>
         <div class="upload-preview" id="uploadPreview"></div>
       </div>
 
@@ -216,65 +219,179 @@
     // Start Listener
     listenToApprovedPhotos();
 
-    // 1. REAL-TIME GALLERY PUBLIC LISTENER
+    // 1. REAL-TIME GALLERY WITH PAGINATION
     const galleryGrid = document.getElementById("galleryGrid");
     const folderFilterBar = document.getElementById("folderFilterBar");
+    const paginationBar = document.getElementById("paginationBar");
 
-    // Track known folders for filter bar
+    const PHOTOS_PER_PAGE = 12;
     let knownFolders = {}; // slug -> label
     let activeFilter = "all";
+    let currentPage = 1;
+    let allPhotoData = []; // holds all approved photo data objects
 
-    function slugifyFolder(name) {
-      return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "general";
+    // Build a single gallery item element
+    function buildPhotoItem(data, docId) {
+      const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
+      const decade = data.decade || "2020s";
+      const folderSlug = data.folder || "general";
+      const folderLabel = data.folderLabel || "General";
+
+      const itemEl = document.createElement("div");
+      itemEl.className = "gallery-item firestore-gallery-item active";
+      itemEl.style.opacity = "1";
+      itemEl.style.transform = "none";
+      itemEl.style.position = "relative";
+      itemEl.setAttribute("data-decade", decade);
+      itemEl.setAttribute("data-folder", folderSlug);
+      itemEl.setAttribute("data-src", data.imageUrl);
+      itemEl.setAttribute("data-caption", caption);
+
+      itemEl.innerHTML = `
+        <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
+        <button type="button" class="admin-delete-btn" title="Delete Photo">🗑️ Delete</button>
+        <div class="gallery-overlay">
+          <span class="gallery-folder-badge">📁 ${folderLabel}</span>
+          <span class="gallery-overlay-text">📸 ${caption}</span>
+        </div>
+        <div class="gallery-zoom-icon">🔍</div>
+      `;
+
+      const delBtn = itemEl.querySelector(".admin-delete-btn");
+      if (delBtn) {
+        delBtn.addEventListener("click", async (e) => {
+          e.stopPropagation(); e.preventDefault();
+          if (!confirm(`Are you sure you want to delete "${caption}" permanently?`)) return;
+          try {
+            await deleteDoc(doc(db, "gallery_photos", docId));
+            if (data.filePath || data.githubSha) await deleteFromGitHub(data.filePath, data.githubSha);
+            alert("Photo deleted successfully!");
+          } catch (err) { alert("Failed to delete: " + err.message); }
+        });
+      }
+
+      itemEl.addEventListener("click", (e) => {
+        if (e.target.classList.contains("admin-delete-btn")) return;
+        const lb = document.getElementById("lightbox");
+        const lbImg = document.getElementById("lbImg");
+        const lbCaption = document.getElementById("lbCaption");
+        if (lb && lbImg && lbCaption) {
+          lbImg.src = data.imageUrl;
+          lbCaption.textContent = caption;
+          lb.classList.add("active");
+        }
+      });
+
+      return itemEl;
+    }
+
+    // Get filtered photos based on activeFilter
+    function getFilteredPhotos() {
+      if (activeFilter === "all") return allPhotoData;
+      return allPhotoData.filter(p => (p.data.folder || "general") === activeFilter);
+    }
+
+    // Render current page of photos
+    function renderPage(page) {
+      currentPage = page;
+      galleryGrid.querySelectorAll(".firestore-gallery-item").forEach(el => el.remove());
+
+      const filtered = getFilteredPhotos();
+      const totalPages = Math.ceil(filtered.length / PHOTOS_PER_PAGE);
+      const start = (page - 1) * PHOTOS_PER_PAGE;
+      const end = start + PHOTOS_PER_PAGE;
+      const pageItems = filtered.slice(start, end);
+
+      pageItems.forEach(({ data, docId }) => {
+        galleryGrid.appendChild(buildPhotoItem(data, docId));
+      });
+
+      // Show/hide empty state
+      const galleryEmpty = document.getElementById("galleryEmpty");
+      if (galleryEmpty) galleryEmpty.style.display = filtered.length === 0 ? "block" : "none";
+
+      // Render pagination
+      renderPagination(totalPages);
+
+      // Scroll to top of gallery smoothly
+      if (page > 1) galleryGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Render pagination buttons
+    function renderPagination(totalPages) {
+      paginationBar.innerHTML = "";
+      if (totalPages <= 1) {
+        paginationBar.style.display = "none";
+        return;
+      }
+      paginationBar.style.display = "flex";
+
+      const prevBtn = document.createElement("button");
+      prevBtn.className = "page-btn" + (currentPage === 1 ? " disabled" : "");
+      prevBtn.textContent = "‹";
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.addEventListener("click", () => {
+        if (currentPage > 1) renderPage(currentPage - 1);
+      });
+      paginationBar.appendChild(prevBtn);
+
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement("button");
+        btn.className = "page-btn" + (i === currentPage ? " active" : "");
+        btn.textContent = i;
+        btn.addEventListener("click", () => renderPage(i));
+        paginationBar.appendChild(btn);
+      }
+
+      const nextBtn = document.createElement("button");
+      nextBtn.className = "page-btn" + (currentPage === totalPages ? " disabled" : "");
+      nextBtn.textContent = "›";
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.addEventListener("click", () => {
+        if (currentPage < totalPages) renderPage(currentPage + 1);
+      });
+      paginationBar.appendChild(nextBtn);
     }
 
     function applyFolderFilter(folder) {
       activeFilter = folder;
-      const allItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
-      allItems.forEach(el => {
-        if (folder === "all" || el.getAttribute("data-folder") === folder) {
-          el.style.display = "";
-        } else {
-          el.style.display = "none";
-        }
-      });
-      // Update active button
+      currentPage = 1;
       folderFilterBar.querySelectorAll(".folder-filter-btn").forEach(btn => {
         btn.classList.toggle("active", btn.getAttribute("data-folder") === folder);
       });
+      renderPage(1);
     }
 
     function rebuildFolderFilterBar() {
-      // Remove all existing folder buttons (keep only #filterAll)
       folderFilterBar.querySelectorAll(".folder-filter-btn:not(#filterAll)").forEach(b => b.remove());
-
       const slugs = Object.keys(knownFolders);
-      if (slugs.length === 0) {
-        folderFilterBar.style.display = "none";
-        return;
+      if (slugs.length === 0) { folderFilterBar.style.display = "none"; }
+      else {
+        folderFilterBar.style.display = "flex";
+        slugs.forEach(slug => {
+          const label = knownFolders[slug];
+          if (!folderFilterBar.querySelector(`[data-folder="${slug}"]`)) {
+            const btn = document.createElement("button");
+            btn.className = "folder-filter-btn";
+            btn.setAttribute("data-folder", slug);
+            btn.textContent = `📁 ${label}`;
+            btn.addEventListener("click", () => applyFolderFilter(slug));
+            folderFilterBar.appendChild(btn);
+          }
+        });
       }
-
-      folderFilterBar.style.display = "flex";
-
-      slugs.forEach(slug => {
-        const label = knownFolders[slug];
-        if (!folderFilterBar.querySelector(`[data-folder="${slug}"]`)) {
-          const btn = document.createElement("button");
-          btn.className = "folder-filter-btn";
-          btn.setAttribute("data-folder", slug);
-          btn.textContent = `📁 ${label}`;
-          btn.addEventListener("click", () => applyFolderFilter(slug));
-          folderFilterBar.appendChild(btn);
-        }
-      });
-
-      // Re-apply current active filter
-      applyFolderFilter(activeFilter);
-      // Sync upload dropdown with latest folders
+      renderPage(currentPage);
       populateFolderDropdown();
     }
 
-    // Bind the "All Photos" button
     document.getElementById("filterAll").addEventListener("click", () => applyFolderFilter("all"));
 
     function listenToApprovedPhotos() {
@@ -288,94 +405,23 @@
         }
 
         onSnapshot(q, (snapshot) => {
-          const existingDynamicItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
-          existingDynamicItems.forEach(el => el.remove());
-
-          let approvedCount = 0;
+          // Collect all approved photos into memory
+          allPhotoData = [];
           knownFolders = {};
 
           snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
             const docId = docSnap.id;
-            
-            // Only render photos where isApproved === true
             if (data.isApproved === true) {
-              approvedCount++;
-              const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
-              const decade = data.decade || "2020s";
+              allPhotoData.push({ data, docId });
               const folderSlug = data.folder || "general";
               const folderLabel = data.folderLabel || "General";
-
-              // Track folders for filter bar
               knownFolders[folderSlug] = folderLabel;
-
-              const itemEl = document.createElement("div");
-              itemEl.className = "gallery-item firestore-gallery-item active";
-              itemEl.style.opacity = "1";
-              itemEl.style.transform = "none";
-              itemEl.style.position = "relative";
-              itemEl.setAttribute("data-decade", decade);
-              itemEl.setAttribute("data-folder", folderSlug);
-              itemEl.setAttribute("data-src", data.imageUrl);
-              itemEl.setAttribute("data-caption", caption);
-
-              itemEl.innerHTML = `
-                <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
-                <button type="button" class="admin-delete-btn" title="Delete Photo">🗑️ Delete</button>
-                <div class="gallery-overlay">
-                  <span class="gallery-folder-badge">📁 ${folderLabel}</span>
-                  <span class="gallery-overlay-text">📸 ${caption}</span>
-                </div>
-                <div class="gallery-zoom-icon">🔍</div>
-              `;
-
-              // Admin Direct Delete Action
-              const delBtn = itemEl.querySelector(".admin-delete-btn");
-              if (delBtn) {
-                delBtn.addEventListener("click", async (e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  if (!confirm(`Are you sure you want to delete "${caption}" permanently?`)) return;
-
-                  try {
-                    await deleteDoc(doc(db, "gallery_photos", docId));
-                    if (data.filePath || data.githubSha) {
-                      await deleteFromGitHub(data.filePath, data.githubSha);
-                    }
-                    alert("Photo deleted successfully!");
-                  } catch (err) {
-                    console.error("Error deleting photo:", err);
-                    alert("Failed to delete photo: " + err.message);
-                  }
-                });
-              }
-
-              // Lightbox Event
-              itemEl.addEventListener("click", (e) => {
-                if (e.target.classList.contains("admin-delete-btn")) return;
-                
-                const lb = document.getElementById("lightbox");
-                const lbImg = document.getElementById("lbImg");
-                const lbCaption = document.getElementById("lbCaption");
-                if (lb && lbImg && lbCaption) {
-                  lbImg.src = data.imageUrl;
-                  lbCaption.textContent = caption;
-                  lb.classList.add("active");
-                }
-              });
-
-              galleryGrid.prepend(itemEl);
             }
           });
 
-          // Rebuild folder filter bar
+          // Rebuild folders and render page 1
           rebuildFolderFilterBar();
-
-          // Show empty state if no approved photos
-          const galleryEmpty = document.getElementById("galleryEmpty");
-          if (galleryEmpty) {
-            galleryEmpty.style.display = approvedCount === 0 ? "block" : "none";
-          }
         }, (error) => {
           console.warn("Firestore real-time gallery listener warning:", error);
         });
@@ -565,9 +611,10 @@
       // Slugify safety
       albumSlug = albumSlug || "general";
 
-      if (files.length > 10) {
+      // No strict limit — show info if very large batch
+      if (files.length > 50) {
         uploadStatus.className = "upload-status error";
-        uploadStatus.textContent = "⚠️ Maximum 10 photos can be uploaded at once.";
+        uploadStatus.textContent = "⚠️ Please upload max 50 photos at a time for best performance.";
         return;
       }
 
