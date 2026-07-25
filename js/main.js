@@ -203,7 +203,6 @@ function initUpload() {
   const fileInput   = document.getElementById('fileInput');
   const preview     = document.getElementById('uploadPreview');
   const uploadBtn   = document.getElementById('uploadBtn');
-  const saveBtn     = document.getElementById('saveGalleryBtn');
   const countEl     = document.getElementById('uploadCount');
   const statusEl    = document.getElementById('uploadStatus');
   const galleryGrid = document.getElementById('galleryGrid');
@@ -211,23 +210,17 @@ function initUpload() {
   if (!dropzone) return;
 
   const maxFiles = 10;
-  let stagedPhotos = [];
   let savedPhotos = [];
 
   function updateCount(message) {
     if (!countEl) return;
-    countEl.textContent = message || `${stagedPhotos.length} photo(s) ready to save`;
+    countEl.textContent = message || `${savedPhotos.length} photo(s) saved in gallery`;
   }
 
   function updateStatus(message, isError = false) {
     if (!statusEl) return;
     statusEl.textContent = message || '';
     statusEl.style.color = isError ? '#e05555' : 'var(--accent)';
-  }
-
-  function updateSaveButton() {
-    if (!saveBtn) return;
-    saveBtn.disabled = stagedPhotos.length === 0;
   }
 
   function persistGallery() {
@@ -280,10 +273,12 @@ function initUpload() {
     const removeButton = previewItem.querySelector('.preview-remove');
     removeButton?.addEventListener('click', () => {
       previewItem.remove();
-      stagedPhotos = stagedPhotos.filter(item => item.id !== photo.id);
+      savedPhotos = savedPhotos.filter(item => item.id !== photo.id);
+      const galleryItem = document.querySelector(`.gallery-item[data-upload-id="${photo.id}"]`);
+      galleryItem?.remove();
+      persistGallery();
       updateCount();
-      updateSaveButton();
-      updateStatus('Photo removed from staging.');
+      updateStatus('Photo removed from gallery.');
     });
 
     preview.appendChild(previewItem);
@@ -292,7 +287,7 @@ function initUpload() {
   function handleFiles(files) {
     if (!files || !files.length) return;
     const fileArray = Array.from(files);
-    const usedCount = savedPhotos.length + stagedPhotos.length;
+    const usedCount = savedPhotos.length;
     const availableSlots = maxFiles - usedCount;
 
     if (availableSlots <= 0) {
@@ -315,38 +310,18 @@ function initUpload() {
         const caption = file.name;
         const photo = { id: uploadId, src, caption };
 
-        stagedPhotos.push(photo);
-        appendPreview(photo);
-        updateCount();
-        updateSaveButton();
-        updateStatus('Photo ready to save. Click Save to add it to the gallery.');
+        createGalleryItem(photo.src, photo.caption, photo.id);
+        savedPhotos.push(photo);
+        persistGallery();
+        updateCount(`Saved ${savedPhotos.length} photo(s) in the gallery.`);
+        updateStatus('Photo saved directly into the gallery.');
       };
 
       reader.readAsDataURL(file);
     });
   }
 
-  function saveStagedPhotos() {
-    if (!stagedPhotos.length) {
-      updateStatus('Select at least one photo before saving.', true);
-      return;
-    }
-
-    stagedPhotos.forEach(photo => {
-      createGalleryItem(photo.src, photo.caption, photo.id);
-      savedPhotos.push(photo);
-    });
-
-    persistGallery();
-    stagedPhotos = [];
-    if (preview) preview.innerHTML = '';
-    updateCount('Saved to gallery locally. Reload keeps the photos in this browser.');
-    updateStatus('Photos saved successfully.');
-    updateSaveButton();
-  }
-
   uploadBtn?.addEventListener('click', () => fileInput?.click());
-  saveBtn?.addEventListener('click', saveStagedPhotos);
 
   ['dragenter', 'dragover'].forEach(ev => {
     dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); });
