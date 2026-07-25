@@ -1,12 +1,13 @@
 // Firebase & GitHub API Configuration for Brothers Club Cheeral
 
 export const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
+  apiKey: "AIzaSyDWPGbhTJzKWQDcsh5uLBAHJzuST0reSl8",
   authDomain: "brothers-club-cheeral.firebaseapp.com",
   projectId: "brothers-club-cheeral",
-  storageBucket: "brothers-club-cheeral.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456"
+  storageBucket: "brothers-club-cheeral.firebasestorage.app",
+  messagingSenderId: "480162983934",
+  appId: "1:480162983934:web:589d6d5ea928fb37b79aaf",
+  measurementId: "G-88GF1R58VV"
 };
 
 export const githubConfig = {
