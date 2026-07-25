@@ -185,7 +185,6 @@
       getFirestore, 
       collection, 
       query, 
-      where, 
       orderBy, 
       onSnapshot, 
       addDoc, 
@@ -197,13 +196,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. REAL-TIME GALLERY PUBLIC LISTENER (isApproved == true)
+    // 1. REAL-TIME GALLERY PUBLIC LISTENER (Renders any photo where isApproved === true)
     const galleryGrid = document.getElementById("galleryGrid");
 
     function listenToApprovedPhotos() {
       try {
         const photosRef = collection(db, "gallery_photos");
-        const q = query(photosRef, where("isApproved", "==", true), orderBy("createdAt", "desc"));
+        let q;
+        try {
+          q = query(photosRef, orderBy("createdAt", "desc"));
+        } catch (e) {
+          q = query(photosRef);
+        }
 
         onSnapshot(q, (snapshot) => {
           const existingDynamicItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
@@ -211,36 +215,42 @@
 
           snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
-            const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
-            const decade = data.decade || "2020s";
+            
+            // Only render photos where isApproved === true
+            if (data.isApproved === true) {
+              const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
+              const decade = data.decade || "2020s";
 
-            const itemEl = document.createElement("div");
-            itemEl.className = "gallery-item firestore-gallery-item reveal active";
-            itemEl.setAttribute("data-decade", decade);
-            itemEl.setAttribute("data-src", data.imageUrl);
-            itemEl.setAttribute("data-caption", caption);
+              const itemEl = document.createElement("div");
+              itemEl.className = "gallery-item firestore-gallery-item active";
+              itemEl.style.opacity = "1";
+              itemEl.style.transform = "none";
+              itemEl.setAttribute("data-decade", decade);
+              itemEl.setAttribute("data-src", data.imageUrl);
+              itemEl.setAttribute("data-caption", caption);
 
-            itemEl.innerHTML = `
-              <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
-              <div class="gallery-overlay">
-                <span class="gallery-overlay-text">📸 ${caption}</span>
-              </div>
-              <div class="gallery-zoom-icon">🔍</div>
-            `;
+              itemEl.innerHTML = `
+                <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
+                <div class="gallery-overlay">
+                  <span class="gallery-overlay-text">📸 ${caption}</span>
+                </div>
+                <div class="gallery-zoom-icon">🔍</div>
+              `;
 
-            // Lightbox Event
-            itemEl.addEventListener("click", () => {
-              const lb = document.getElementById("lightbox");
-              const lbImg = document.getElementById("lbImg");
-              const lbCaption = document.getElementById("lbCaption");
-              if (lb && lbImg && lbCaption) {
-                lbImg.src = data.imageUrl;
-                lbCaption.textContent = caption;
-                lb.classList.add("active");
-              }
-            });
+              // Lightbox Event
+              itemEl.addEventListener("click", () => {
+                const lb = document.getElementById("lightbox");
+                const lbImg = document.getElementById("lbImg");
+                const lbCaption = document.getElementById("lbCaption");
+                if (lb && lbImg && lbCaption) {
+                  lbImg.src = data.imageUrl;
+                  lbCaption.textContent = caption;
+                  lb.classList.add("active");
+                }
+              });
 
-            galleryGrid.prepend(itemEl);
+              galleryGrid.prepend(itemEl);
+            }
           });
         }, (error) => {
           console.warn("Firestore real-time gallery listener warning:", error);
@@ -336,7 +346,7 @@
         return;
       }
 
-      // Ensure we have a token before starting upload
+      // Ensure token before starting upload
       let currentToken = await getOrPromptGitHubToken(false);
       if (!currentToken) {
         uploadStatus.className = "upload-status error";
@@ -438,7 +448,7 @@
             fileName: generatedFileName,
             caption: cleanBaseName.replace(/_/g, " "),
             createdAt: serverTimestamp(),
-            isApproved: false,
+            isApproved: false, // Pending moderation
             githubSha: commitSha,
             filePath: filePath
           });
