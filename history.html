@@ -54,43 +54,10 @@
 
       <!-- Real-time Firestore Gallery Grid -->
       <div class="gallery-grid" id="galleryGrid">
-        <!-- Default Baseline Photos -->
-        <div class="gallery-item reveal" data-decade="1980s" data-src="assets/images/gallery_1990s.jpg" data-caption="Brothers Club Cheeral – Founding Years (1988)">
-          <img src="assets/images/gallery_1990s.jpg" alt="Brothers Club Cheeral founding year photo 1988" loading="lazy" />
-          <div class="gallery-overlay">
-            <span class="gallery-overlay-text">📅 1988 – Founding Year</span>
-          </div>
-          <div class="gallery-zoom-icon">🔍</div>
-        </div>
-
-        <div class="gallery-item reveal delay-1" data-decade="2000s" data-src="assets/images/gallery_2000s_1.jpg" data-caption="Brothers Club Cheeral – 2000s Era">
-          <img src="assets/images/gallery_2000s_1.jpg" alt="Brothers Club Cheeral 2000s team photo" loading="lazy" />
-          <div class="gallery-overlay"><span class="gallery-overlay-text">🌟 2000s – New Millennium</span></div>
-          <div class="gallery-zoom-icon">🔍</div>
-        </div>
-
-        <div class="gallery-item reveal delay-2" data-decade="2000s" data-src="assets/images/gallery_2000s_2.jpg" data-caption="Brothers Club Cheeral – 2000s Team Gathering">
-          <img src="assets/images/gallery_2000s_2.jpg" alt="Brothers Club Cheeral 2000s team gathering" loading="lazy" />
-          <div class="gallery-overlay"><span class="gallery-overlay-text">👥 2000s – Team Gathering</span></div>
-          <div class="gallery-zoom-icon">🔍</div>
-        </div>
-
-        <div class="gallery-item reveal delay-3" data-decade="2000s" data-src="assets/images/gallery_2000s_3.jpg" data-caption="Brothers Club Cheeral – 2000s Club Celebration">
-          <img src="assets/images/gallery_2000s_3.jpg" alt="Brothers Club Cheeral 2000s club celebration" loading="lazy" />
-          <div class="gallery-overlay"><span class="gallery-overlay-text">📸 2000s – Club Celebration</span></div>
-          <div class="gallery-zoom-icon">🔍</div>
-        </div>
-
-        <div class="gallery-item reveal delay-1" data-decade="2010s" data-src="assets/images/gallery_2010s_1.jpg" data-caption="Brothers Club Cheeral – 2010s Match Day">
-          <img src="assets/images/gallery_2010s_1.jpg" alt="Brothers Club Cheeral 2010s match day photo" loading="lazy" />
-          <div class="gallery-overlay"><span class="gallery-overlay-text">🎯 2010s – Match Day</span></div>
-          <div class="gallery-zoom-icon">🔍</div>
-        </div>
-
-        <div class="gallery-item reveal delay-2" data-decade="2010s" data-src="assets/images/gallery_2010s_2.jpg" data-caption="Brothers Club Cheeral – 2010s Team Lineup">
-          <img src="assets/images/gallery_2010s_2.jpg" alt="Brothers Club Cheeral 2010s team lineup" loading="lazy" />
-          <div class="gallery-overlay"><span class="gallery-overlay-text">⚡ 2010s – Team Lineup</span></div>
-          <div class="gallery-zoom-icon">🔍</div>
+        <div class="gallery-empty-state" id="galleryEmpty" style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
+          <p style="font-size: 1rem; font-weight: 500; color: var(--white);">No approved photos in the archive yet.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Be the first to share a club memory below!</p>
         </div>
       </div><!-- /gallery-grid -->
 
@@ -204,12 +171,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const ALLOWED_ADMIN_EMAILS = [
-      "farizpaachi@gmail.com",
-      "brotherscheeral@gmail.com",
-      "brothersclubcheeral@gmail.com"
-    ];
-
     let isAdminLoggedIn = false;
 
     // Monitor Auth State for Admin Direct Delete Access
@@ -243,12 +204,15 @@
           const existingDynamicItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
           existingDynamicItems.forEach(el => el.remove());
 
+          let approvedCount = 0;
+
           snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
             const docId = docSnap.id;
             
             // Only render photos where isApproved === true
             if (data.isApproved === true) {
+              approvedCount++;
               const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
               const decade = data.decade || "2020s";
 
@@ -312,6 +276,12 @@
               galleryGrid.prepend(itemEl);
             }
           });
+
+          // Show empty state if no approved photos
+          const galleryEmpty = document.getElementById("galleryEmpty");
+          if (galleryEmpty) {
+            galleryEmpty.style.display = approvedCount === 0 ? "block" : "none";
+          }
         }, (error) => {
           console.warn("Firestore real-time gallery listener warning:", error);
         });
