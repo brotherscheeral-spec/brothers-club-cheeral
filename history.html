@@ -52,6 +52,11 @@
       <h2 class="section-title reveal delay-1" id="gallery-heading">Photo Archive</h2>
       <div class="section-divider reveal delay-2"></div>
 
+      <!-- Folder Filter Bar -->
+      <div class="folder-filter-bar" id="folderFilterBar" style="display: none;">
+        <button class="folder-filter-btn active" data-folder="all" id="filterAll">🗂️ All Photos</button>
+      </div>
+
       <!-- Real-time Firestore Gallery Grid -->
       <div class="gallery-grid" id="galleryGrid">
         <div class="gallery-empty-state" id="galleryEmpty" style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
@@ -69,6 +74,21 @@
           Have old club photos or recent match shots? Drop them here to add to our archive.<br/>
           Drag &amp; drop images or click the button below to select files.
         </p>
+
+        <!-- Album / Folder Name Input -->
+        <div class="album-name-wrap">
+          <label for="albumNameInput" class="album-name-label">📁 Album / Folder Name <span style="color: var(--accent);">*</span></label>
+          <input
+            type="text"
+            id="albumNameInput"
+            class="album-name-input"
+            placeholder="e.g. 2024 Annual Meet, 1990s Matches, Club Celebration…"
+            maxlength="60"
+            aria-label="Album or folder name for these photos"
+          />
+          <p class="album-name-hint">Photos will be grouped under this album in the gallery.</p>
+        </div>
+
         <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple aria-label="Select photos to upload" style="display: none;" />
         <div class="upload-actions">
           <button class="btn btn-primary" id="uploadBtn" type="button">
@@ -189,6 +209,62 @@
 
     // 1. REAL-TIME GALLERY PUBLIC LISTENER
     const galleryGrid = document.getElementById("galleryGrid");
+    const folderFilterBar = document.getElementById("folderFilterBar");
+
+    // Track known folders for filter bar
+    let knownFolders = {}; // slug -> label
+    let activeFilter = "all";
+
+    function slugifyFolder(name) {
+      return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "general";
+    }
+
+    function applyFolderFilter(folder) {
+      activeFilter = folder;
+      const allItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
+      allItems.forEach(el => {
+        if (folder === "all" || el.getAttribute("data-folder") === folder) {
+          el.style.display = "";
+        } else {
+          el.style.display = "none";
+        }
+      });
+      // Update active button
+      folderFilterBar.querySelectorAll(".folder-filter-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-folder") === folder);
+      });
+    }
+
+    function rebuildFolderFilterBar() {
+      // Remove all existing folder buttons (keep only #filterAll)
+      folderFilterBar.querySelectorAll(".folder-filter-btn:not(#filterAll)").forEach(b => b.remove());
+
+      const slugs = Object.keys(knownFolders);
+      if (slugs.length === 0) {
+        folderFilterBar.style.display = "none";
+        return;
+      }
+
+      folderFilterBar.style.display = "flex";
+
+      slugs.forEach(slug => {
+        const label = knownFolders[slug];
+        if (!folderFilterBar.querySelector(`[data-folder="${slug}"]`)) {
+          const btn = document.createElement("button");
+          btn.className = "folder-filter-btn";
+          btn.setAttribute("data-folder", slug);
+          btn.textContent = `📁 ${label}`;
+          btn.addEventListener("click", () => applyFolderFilter(slug));
+          folderFilterBar.appendChild(btn);
+        }
+      });
+
+      // Re-apply current active filter
+      applyFolderFilter(activeFilter);
+    }
+
+    // Bind the "All Photos" button
+    document.getElementById("filterAll").addEventListener("click", () => applyFolderFilter("all"));
 
     function listenToApprovedPhotos() {
       try {
@@ -205,6 +281,7 @@
           existingDynamicItems.forEach(el => el.remove());
 
           let approvedCount = 0;
+          knownFolders = {};
 
           snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
@@ -215,6 +292,11 @@
               approvedCount++;
               const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
               const decade = data.decade || "2020s";
+              const folderSlug = data.folder || "general";
+              const folderLabel = data.folderLabel || "General";
+
+              // Track folders for filter bar
+              knownFolders[folderSlug] = folderLabel;
 
               const itemEl = document.createElement("div");
               itemEl.className = "gallery-item firestore-gallery-item active";
@@ -222,6 +304,7 @@
               itemEl.style.transform = "none";
               itemEl.style.position = "relative";
               itemEl.setAttribute("data-decade", decade);
+              itemEl.setAttribute("data-folder", folderSlug);
               itemEl.setAttribute("data-src", data.imageUrl);
               itemEl.setAttribute("data-caption", caption);
 
@@ -229,6 +312,7 @@
                 <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
                 <button type="button" class="admin-delete-btn" title="Delete Photo">🗑️ Delete</button>
                 <div class="gallery-overlay">
+                  <span class="gallery-folder-badge">📁 ${folderLabel}</span>
                   <span class="gallery-overlay-text">📸 ${caption}</span>
                 </div>
                 <div class="gallery-zoom-icon">🔍</div>
@@ -238,15 +322,12 @@
               const delBtn = itemEl.querySelector(".admin-delete-btn");
               if (delBtn) {
                 delBtn.addEventListener("click", async (e) => {
-                  e.stopPropagation(); // Don't open lightbox
+                  e.stopPropagation();
                   e.preventDefault();
                   if (!confirm(`Are you sure you want to delete "${caption}" permanently?`)) return;
 
                   try {
-                    // 1. Delete Firestore Document
                     await deleteDoc(doc(db, "gallery_photos", docId));
-                    
-                    // 2. Delete file from GitHub
                     if (data.filePath || data.githubSha) {
                       await deleteFromGitHub(data.filePath, data.githubSha);
                     }
@@ -260,7 +341,6 @@
 
               // Lightbox Event
               itemEl.addEventListener("click", (e) => {
-                // Ignore if clicked on delete button
                 if (e.target.classList.contains("admin-delete-btn")) return;
                 
                 const lb = document.getElementById("lightbox");
@@ -276,6 +356,9 @@
               galleryGrid.prepend(itemEl);
             }
           });
+
+          // Rebuild folder filter bar
+          rebuildFolderFilterBar();
 
           // Show empty state if no approved photos
           const galleryEmpty = document.getElementById("galleryEmpty");
@@ -294,9 +377,8 @@
     async function deleteFromGitHub(filePath, sha) {
       let token = githubConfig.token;
       if (!token) {
-        token = prompt("🔑 Enter your GitHub Personal Access Token to authorize deletion:");
-        if (token) githubConfig.setToken(token);
-        else return;
+        console.error("GitHub token not configured.");
+        return;
       }
 
       let fileSha = sha;
@@ -335,21 +417,7 @@
           });
 
           if (delRes.status === 401) {
-            localStorage.removeItem("gh_token");
-            const newToken = prompt("🔑 GitHub token invalid/expired. Please re-enter your GitHub PAT:");
-            if (newToken) {
-              githubConfig.setToken(newToken);
-              headers["Authorization"] = `token ${newToken}`;
-              delRes = await fetch(ghApiUrl, {
-                method: "DELETE",
-                headers: headers,
-                body: JSON.stringify({
-                  message: `Delete gallery photo: ${targetPath}`,
-                  sha: fileSha,
-                  branch: githubConfig.branch || "main"
-                })
-              });
-            }
+            console.error("GitHub token invalid or expired. Please update the token in firebase-config.js.");
           }
         } catch (err) {
           console.warn("GitHub Delete API call notice:", err);
@@ -370,16 +438,9 @@
       });
     }
 
-    // Helper: Ensure valid GitHub Token from localStorage or prompt
+    // Helper: Get GitHub Token from config (no prompt — token is pre-configured)
     async function getOrPromptGitHubToken(forcePrompt = false) {
-      let token = githubConfig.token;
-      if (!token || forcePrompt) {
-        token = prompt("🔑 Please enter your GitHub Personal Access Token (PAT) with repo contents permission:");
-        if (token) {
-          githubConfig.setToken(token);
-        }
-      }
-      return token;
+      return githubConfig.token;
     }
 
     // 2. UPLOAD & CLIENT-SIDE COMPRESSION & GITHUB CONTENTS API
@@ -426,6 +487,18 @@
 
     // File Handler
     async function handleFiles(files) {
+      // Validate Album Name
+      const albumNameInput = document.getElementById("albumNameInput");
+      const albumLabelRaw = albumNameInput ? albumNameInput.value.trim() : "";
+      if (!albumLabelRaw) {
+        uploadStatus.className = "upload-status error";
+        uploadStatus.textContent = "⚠️ Please enter an Album / Folder Name before uploading.";
+        albumNameInput && albumNameInput.focus();
+        return;
+      }
+      // Slugify for use in GitHub path
+      const albumSlug = albumLabelRaw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "general";
+
       if (files.length > 10) {
         uploadStatus.className = "upload-status error";
         uploadStatus.textContent = "⚠️ Maximum 10 photos can be uploaded at once.";
@@ -485,8 +558,9 @@
           const cleanBaseName = file.name.substring(0, file.name.lastIndexOf('.')).replace(/[^a-zA-Z0-9_-]/g, "_");
           const generatedFileName = `${timeStamp}_${cleanBaseName}.${ext}`;
 
+          // Use album slug as subfolder under the base gallery folder
           const ghFolderPath = githubConfig.folder ? githubConfig.folder.replace(/\/$/, '') : 'images/gallery';
-          const filePath = `${ghFolderPath}/${generatedFileName}`;
+          const filePath = `${ghFolderPath}/${albumSlug}/${generatedFileName}`;
           const ghApiUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${filePath}`;
 
           let ghResponse = await fetch(ghApiUrl, {
@@ -542,6 +616,8 @@
             imageUrl: rawUrl,
             fileName: generatedFileName,
             caption: cleanBaseName.replace(/_/g, " "),
+            folder: albumSlug,
+            folderLabel: albumLabelRaw,
             createdAt: serverTimestamp(),
             isApproved: false, // Pending moderation
             githubSha: commitSha,

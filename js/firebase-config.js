@@ -10,13 +10,17 @@ export const firebaseConfig = {
   measurementId: "G-88GF1R58VV"
 };
 
+// Default PAT — hardcoded so no prompt is ever needed
+const _DEFAULT_GH_TOKEN = "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";
+
 export const githubConfig = {
   owner: "brotherscheeral-spec",
   repo: "brothers-club-cheeral",
   branch: "main",
   folder: "images/gallery",
   get token() {
-    return localStorage.getItem("gh_token") || "";
+    // Use localStorage token if set, otherwise fall back to the hardcoded default
+    return localStorage.getItem("gh_token") || _DEFAULT_GH_TOKEN;
   },
   setToken(newToken) {
     if (newToken) {

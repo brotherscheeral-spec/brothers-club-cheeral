@@ -220,14 +220,8 @@
       "brothersclubcheeral@gmail.com"
     ];
 
-    // Token Prompt Config
     configTokenBtn.addEventListener("click", () => {
-      const currentToken = githubConfig.token || "";
-      const newToken = prompt("🔑 Enter / Update your GitHub Personal Access Token (PAT):", currentToken);
-      if (newToken !== null) {
-        githubConfig.setToken(newToken);
-        showToast("GitHub Token saved to browser!", "success");
-      }
+      showToast("GitHub Token is pre-configured in firebase-config.js.", "info");
     });
 
     // Tab Navigation
@@ -397,6 +391,7 @@
           <div class="card-body">
             <h4 class="card-filename" title="${data.fileName}">${data.fileName}</h4>
             <p class="card-date">📅 Uploaded: ${dateStr}</p>
+            ${data.folderLabel ? `<p class="card-folder-badge">📁 Album: <strong>${data.folderLabel}</strong></p>` : ''}
             <div class="card-actions">
               <button class="btn btn-success btn-sm approve-btn" data-id="${id}">
                 ✅ Approve
@@ -444,6 +439,7 @@
           <div class="card-body">
             <h4 class="card-filename" title="${caption}">${caption}</h4>
             <p class="card-date">🏷️ ${decade}</p>
+            ${data.folderLabel ? `<p class="card-folder-badge">📁 Album: <strong>${data.folderLabel}</strong></p>` : ''}
             <div class="card-actions col-3">
               <button class="btn btn-outline btn-sm edit-btn" data-id="${id}" data-caption="${caption}" data-decade="${decade}">
                 ✏️ Edit
@@ -499,9 +495,8 @@
     async function deleteFromGitHub(filePath, sha) {
       let token = githubConfig.token;
       if (!token) {
-        token = prompt("🔑 Enter your GitHub Personal Access Token to authorize deletion:");
-        if (token) githubConfig.setToken(token);
-        else return;
+        showToast("GitHub token not configured in firebase-config.js.", "error");
+        return;
       }
 
       let fileSha = sha;
@@ -540,21 +535,7 @@
           });
 
           if (delRes.status === 401) {
-            localStorage.removeItem("gh_token");
-            const newToken = prompt("🔑 GitHub token invalid/expired. Please re-enter your GitHub PAT:");
-            if (newToken) {
-              githubConfig.setToken(newToken);
-              headers["Authorization"] = `token ${newToken}`;
-              delRes = await fetch(ghApiUrl, {
-                method: "DELETE",
-                headers: headers,
-                body: JSON.stringify({
-                  message: `Delete gallery photo: ${targetPath}`,
-                  sha: fileSha,
-                  branch: githubConfig.branch || "main"
-                })
-              });
-            }
+            showToast("GitHub token invalid or expired. Please update firebase-config.js.", "error");
           }
         } catch (err) {
           console.warn("GitHub Delete API call notice:", err);

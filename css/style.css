@@ -854,6 +854,20 @@ h1, h2, h3, h4, h5 {
   font-weight: 500;
 }
 
+.gallery-folder-badge {
+  display: inline-block;
+  background: rgba(240,192,64,0.18);
+  border: 1px solid rgba(240,192,64,0.35);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 1rem;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.04em;
+  display: block;
+}
+
 .gallery-zoom-icon {
   position: absolute;
   top: 50%;
@@ -888,6 +902,42 @@ h1, h2, h3, h4, h5 {
 .gallery-placeholder .ph-icon { font-size: 2.5rem; opacity: 0.35; }
 .gallery-placeholder span { opacity: 0.6; }
 
+/* ===== FOLDER FILTER BAR ===== */
+.folder-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+  padding: 0.25rem;
+}
+
+.folder-filter-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 2rem;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.02em;
+}
+
+.folder-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(240,192,64,0.08);
+}
+
+.folder-filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--primary-dark);
+  box-shadow: 0 2px 12px rgba(240,192,64,0.28);
+}
+
 /* ===== UPLOAD DROPBOX ===== */
 .upload-section {
   margin-top: 4rem;
@@ -915,6 +965,51 @@ h1, h2, h3, h4, h5 {
   font-family: var(--font-display);
 }
 .upload-desc { color: var(--text-muted); font-size: 0.87rem; margin-bottom: 1.75rem; line-height: 1.6; }
+
+/* Album / Folder name input */
+.album-name-wrap {
+  max-width: 480px;
+  margin: 0 auto 1.75rem;
+  text-align: left;
+}
+
+.album-name-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.03em;
+}
+
+.album-name-input {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: var(--white);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  transition: var(--transition);
+  box-sizing: border-box;
+}
+
+.album-name-input::placeholder { color: var(--text-muted); }
+
+.album-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(240,192,64,0.05);
+  box-shadow: 0 0 0 3px rgba(240,192,64,0.12);
+}
+
+.album-name-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  opacity: 0.7;
+}
 
 .upload-note {
   font-size: 0.75rem;
@@ -1834,7 +1929,17 @@ h1, h2, h3, h4, h5 {
 .card-date {
   font-size: 0.78rem;
   color: var(--text-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+.card-folder-badge {
+  font-size: 0.75rem;
+  color: var(--accent);
+  background: rgba(240,192,64,0.1);
+  border: 1px solid rgba(240,192,64,0.25);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  display: inline-block;
+  margin-bottom: 0.75rem;
 }
 .card-actions {
   display: grid;

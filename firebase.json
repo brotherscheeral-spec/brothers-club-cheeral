@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "brotherscheeral",
     "public": ".",
     "ignore": [
       "firebase.json",
