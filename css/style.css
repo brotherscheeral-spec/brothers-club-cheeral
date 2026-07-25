@@ -923,6 +923,22 @@ h1, h2, h3, h4, h5 {
   margin-top: 0.75rem;
 }
 
+.upload-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.upload-status {
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin: 0.35rem auto 0.75rem;
+  min-height: 1.25rem;
+}
+
 #fileInput { display: none; }
 
 .upload-preview {

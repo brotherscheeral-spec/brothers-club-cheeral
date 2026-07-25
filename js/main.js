@@ -199,23 +199,155 @@ function initLightbox() {
 
 // ─── UPLOAD DROPBOX ─────────────────────────────────────────
 function initUpload() {
-  const dropzone  = document.getElementById('uploadDropzone');
-  const fileInput = document.getElementById('fileInput');
-  const preview   = document.getElementById('uploadPreview');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const countEl   = document.getElementById('uploadCount');
+  const dropzone    = document.getElementById('uploadDropzone');
+  const fileInput   = document.getElementById('fileInput');
+  const preview     = document.getElementById('uploadPreview');
+  const uploadBtn   = document.getElementById('uploadBtn');
+  const saveBtn     = document.getElementById('saveGalleryBtn');
+  const countEl     = document.getElementById('uploadCount');
+  const statusEl    = document.getElementById('uploadStatus');
+  const galleryGrid = document.getElementById('galleryGrid');
 
   if (!dropzone) return;
 
-  let uploadedCount = 0;
+  const maxFiles = 10;
+  let stagedPhotos = [];
+  let savedPhotos = [];
 
-  function updateCount() {
-    if (countEl) countEl.textContent = uploadedCount + ' photo(s) added';
+  function updateCount(message) {
+    if (!countEl) return;
+    countEl.textContent = message || `${stagedPhotos.length} photo(s) ready to save`;
+  }
+
+  function updateStatus(message, isError = false) {
+    if (!statusEl) return;
+    statusEl.textContent = message || '';
+    statusEl.style.color = isError ? '#e05555' : 'var(--accent)';
+  }
+
+  function updateSaveButton() {
+    if (!saveBtn) return;
+    saveBtn.disabled = stagedPhotos.length === 0;
+  }
+
+  function persistGallery() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    window.localStorage.setItem('brothersClubUploadedPhotos', JSON.stringify(savedPhotos));
+  }
+
+  function loadSavedGallery() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('brothersClubUploadedPhotos') || '[]');
+      if (!Array.isArray(saved)) return;
+      savedPhotos = saved;
+      savedPhotos.forEach(photo => createGalleryItem(photo.src, photo.caption, photo.id));
+    } catch (err) {
+      console.warn('Unable to load saved gallery items', err);
+    }
+  }
+
+  function createGalleryItem(src, caption, id) {
+    if (!galleryGrid) return null;
+
+    const item = document.createElement('div');
+    item.className = 'gallery-item reveal';
+    item.dataset.decade = 'uploaded';
+    item.dataset.src = src;
+    item.dataset.caption = caption || 'Uploaded photo';
+    item.dataset.uploadId = id;
+    item.innerHTML = `
+      <img src="${src}" alt="${caption}" />
+      <div class="gallery-overlay"><span class="gallery-overlay-text">📸 Uploaded Memory</span></div>
+      <div class="gallery-zoom-icon">🔍</div>
+    `;
+
+    galleryGrid.appendChild(item);
+    return item;
+  }
+
+  function appendPreview(photo) {
+    if (!preview) return;
+
+    const previewItem = document.createElement('div');
+    previewItem.className = 'preview-item';
+    previewItem.dataset.uploadId = photo.id;
+    previewItem.innerHTML = `
+      <img src="${photo.src}" alt="${photo.caption}" />
+      <button class="preview-remove" title="Remove" aria-label="Remove photo">✕</button>
+    `;
+
+    const removeButton = previewItem.querySelector('.preview-remove');
+    removeButton?.addEventListener('click', () => {
+      previewItem.remove();
+      stagedPhotos = stagedPhotos.filter(item => item.id !== photo.id);
+      updateCount();
+      updateSaveButton();
+      updateStatus('Photo removed from staging.');
+    });
+
+    preview.appendChild(previewItem);
+  }
+
+  function handleFiles(files) {
+    if (!files || !files.length) return;
+    const fileArray = Array.from(files);
+    const usedCount = savedPhotos.length + stagedPhotos.length;
+    const availableSlots = maxFiles - usedCount;
+
+    if (availableSlots <= 0) {
+      updateStatus(`Max ${maxFiles} saved photos reached. Remove saved items from storage to add more.`, true);
+      return;
+    }
+
+    const toProcess = fileArray.slice(0, availableSlots);
+    if (toProcess.length < fileArray.length) {
+      updateStatus(`Only ${availableSlots} image(s) added. Max ${maxFiles} images allowed.`);
+    }
+
+    toProcess.forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      const uploadId = `uploaded-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      reader.onload = ev => {
+        const src = ev.target.result;
+        const caption = file.name;
+        const photo = { id: uploadId, src, caption };
+
+        stagedPhotos.push(photo);
+        appendPreview(photo);
+        updateCount();
+        updateSaveButton();
+        updateStatus('Photo ready to save. Click Save to add it to the gallery.');
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function saveStagedPhotos() {
+    if (!stagedPhotos.length) {
+      updateStatus('Select at least one photo before saving.', true);
+      return;
+    }
+
+    stagedPhotos.forEach(photo => {
+      createGalleryItem(photo.src, photo.caption, photo.id);
+      savedPhotos.push(photo);
+    });
+
+    persistGallery();
+    stagedPhotos = [];
+    if (preview) preview.innerHTML = '';
+    updateCount('Saved to gallery locally. Reload keeps the photos in this browser.');
+    updateStatus('Photos saved successfully.');
+    updateSaveButton();
   }
 
   uploadBtn?.addEventListener('click', () => fileInput?.click());
+  saveBtn?.addEventListener('click', saveStagedPhotos);
 
-  // drag events
   ['dragenter', 'dragover'].forEach(ev => {
     dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); });
   });
@@ -230,29 +362,9 @@ function initUpload() {
 
   fileInput?.addEventListener('change', () => { handleFiles(fileInput.files); fileInput.value = ''; });
 
-  function handleFiles(files) {
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const div = document.createElement('div');
-        div.className = 'preview-item';
-        div.innerHTML = `
-          <img src="${ev.target.result}" alt="${file.name}" />
-          <button class="preview-remove" title="Remove" aria-label="Remove photo">✕</button>
-        `;
-        div.querySelector('.preview-remove').addEventListener('click', () => {
-          div.remove();
-          uploadedCount--;
-          updateCount();
-        });
-        preview?.appendChild(div);
-        uploadedCount++;
-        updateCount();
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+  loadSavedGallery();
+  updateCount('No photos selected yet.');
+  updateSaveButton();
 }
 
 // ─── CONTACT FORM ────────────────────────────────────────────

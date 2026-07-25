@@ -104,11 +104,17 @@
           Drag &amp; drop images or click the button below to select files.
         </p>
         <input type="file" id="fileInput" accept="image/*" multiple aria-label="Select photos to upload" />
-        <button class="btn btn-primary" id="uploadBtn" type="button">
-          📁 Select Photos
-        </button>
-        <p class="upload-note">Supported formats: JPG, PNG, WEBP · Max 10 files at once</p>
+        <div class="upload-actions">
+          <button class="btn btn-primary" id="uploadBtn" type="button">
+            📁 Select Photos
+          </button>
+          <button class="btn btn-outline" id="saveGalleryBtn" type="button" disabled>
+            💾 Save to Gallery
+          </button>
+        </div>
         <p id="uploadCount" style="color: var(--accent); font-size: 0.85rem; margin-top: 0.75rem;"></p>
+        <p id="uploadStatus" class="upload-status"></p>
+        <p class="upload-note">Supported formats: JPG, PNG, WEBP · Max 10 files at once</p>
         <div class="upload-preview" id="uploadPreview"></div>
       </div>
 
