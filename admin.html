@@ -156,7 +156,6 @@
       getFirestore, 
       collection, 
       query, 
-      where, 
       orderBy, 
       onSnapshot, 
       doc, 
@@ -295,32 +294,45 @@
       }
     });
 
-    // Real-time Listeners
-    let unsubscribePending = null;
-    let unsubscribeApproved = null;
+    // Real-time Listener (Classification for pending & approved)
+    let unsubscribeAll = null;
 
     function initRealtimeListeners() {
-      if (unsubscribePending) unsubscribePending();
-      if (unsubscribeApproved) unsubscribeApproved();
+      if (unsubscribeAll) unsubscribeAll();
 
       const photosRef = collection(db, "gallery_photos");
+      let q = query(photosRef);
+      
+      try {
+        q = query(photosRef, orderBy("createdAt", "desc"));
+      } catch (e) {
+        console.warn("OrderBy index warning, falling back:", e);
+      }
 
-      // Pending Photos (isApproved == false)
-      const qPending = query(photosRef, where("isApproved", "==", false), orderBy("createdAt", "desc"));
-      unsubscribePending = onSnapshot(qPending, (snapshot) => {
-        const docs = snapshot.docs;
-        pendingCount.textContent = docs.length;
-        pendingTabCount.textContent = docs.length;
-        renderPendingPhotos(docs);
-      });
+      unsubscribeAll = onSnapshot(q, (snapshot) => {
+        const allDocs = snapshot.docs;
+        const pendingDocs = [];
+        const approvedDocs = [];
 
-      // Approved Photos (isApproved == true)
-      const qApproved = query(photosRef, where("isApproved", "==", true), orderBy("createdAt", "desc"));
-      unsubscribeApproved = onSnapshot(qApproved, (snapshot) => {
-        const docs = snapshot.docs;
-        approvedCount.textContent = docs.length;
-        approvedTabCount.textContent = docs.length;
-        renderApprovedPhotos(docs);
+        allDocs.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.isApproved === true) {
+            approvedDocs.push(docSnap);
+          } else {
+            // Any doc without isApproved == true is pending approval
+            pendingDocs.push(docSnap);
+          }
+        });
+
+        pendingCount.textContent = pendingDocs.length;
+        pendingTabCount.textContent = pendingDocs.length;
+        renderPendingPhotos(pendingDocs);
+
+        approvedCount.textContent = approvedDocs.length;
+        approvedTabCount.textContent = approvedDocs.length;
+        renderApprovedPhotos(approvedDocs);
+      }, (error) => {
+        console.error("Firestore listener error:", error);
       });
     }
 
@@ -436,15 +448,11 @@
       if (!confirm("Are you sure you want to permanently delete this photo from Firestore and GitHub repo?")) return;
 
       try {
-        // 1. Delete Firestore Document
         await deleteDoc(doc(db, "gallery_photos", id));
-
-        // 2. Delete file from GitHub Repository via Contents API
         if (filePath || sha) {
           await deleteFromGitHub(filePath, sha);
         }
-
-        showToast("Photo deleted permanently from Firestore & GitHub.", "success");
+        showToast("Photo deleted permanently.", "success");
       } catch (error) {
         console.error("Error deleting photo:", error);
         showToast("Failed to delete photo: " + error.message, "error");
