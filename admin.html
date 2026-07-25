@@ -266,25 +266,13 @@
       }, 3500);
     }
 
-    // Auth Observer with Admin Email Verification
+    // Auth Observer: Any authenticated user has full Admin Access
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Verify if user is an approved admin email
-        const userEmail = (user.email || "").toLowerCase();
-        const isAuthorized = ALLOWED_ADMIN_EMAILS.some(e => e.toLowerCase() === userEmail) || ALLOWED_ADMIN_EMAILS.length === 0;
-
-        if (!isAuthorized) {
-          authError.style.display = "block";
-          authError.textContent = `🚫 Access Denied: (${user.email}) is not an authorized Admin account.`;
-          showToast("Access Denied. Unauthorized email.", "error");
-          signOut(auth);
-          return;
-        }
-
         authSection.style.display = "none";
         dashboardSection.style.display = "block";
         adminNavActions.style.display = "flex";
-        adminUserEmail.textContent = user.email;
+        adminUserEmail.textContent = user.email || "Admin User";
         initRealtimeListeners();
       } else {
         authSection.style.display = "block";

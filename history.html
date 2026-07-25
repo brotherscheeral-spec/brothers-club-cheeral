@@ -215,13 +215,8 @@
     // Monitor Auth State for Admin Direct Delete Access
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        const userEmail = (user.email || "").toLowerCase();
-        isAdminLoggedIn = ALLOWED_ADMIN_EMAILS.some(e => e.toLowerCase() === userEmail) || ALLOWED_ADMIN_EMAILS.length === 0;
-        if (isAdminLoggedIn) {
-          document.body.classList.add("admin-mode");
-        } else {
-          document.body.classList.remove("admin-mode");
-        }
+        isAdminLoggedIn = true;
+        document.body.classList.add("admin-mode");
       } else {
         isAdminLoggedIn = false;
         document.body.classList.remove("admin-mode");
