@@ -1953,21 +1953,26 @@ h1, h2, h3, h4, h5 {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 10;
-  background: rgba(198, 40, 40, 0.9);
-  color: #fff;
-  border: none;
+  z-index: 9999 !important;
+  background: #c62828 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   border-radius: 6px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  display: none;
   transition: transform 0.2s ease, background 0.2s ease;
 }
+.admin-mode .admin-delete-btn {
+  display: block !important;
+}
 .admin-delete-btn:hover {
-  background: #b71c1c;
+  background: #b71c1c !important;
   transform: scale(1.08);
 }
+
 
 
