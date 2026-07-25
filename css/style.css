@@ -1457,7 +1457,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .footer-brand {}
-.footer-logo { width: 64px; margin-bottom: 1rem; }
+.footer-logo { width: 64px; height: 64px; object-fit: contain; margin-bottom: 1rem; }
 .footer-club-name { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 0.5rem; }
 .footer-tagline { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1rem; }
 
