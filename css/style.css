@@ -103,6 +103,19 @@ h1, h2, h3, h4, h5 {
   padding: 5rem 0;
 }
 
+.history-section {
+  padding: 3rem 0;
+}
+
+.history-section .section-divider {
+  margin: 0 auto 1.8rem;
+}
+
+.history-section .folder-filter-bar {
+  justify-content: center;
+  margin-bottom: 1.4rem;
+}
+
 /* ===== BUTTONS ===== */
 .btn {
   display: inline-flex;
