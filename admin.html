@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin Dashboard | Brothers Club Cheeral</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="admin-body">
+
+  <!-- ADMIN NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="Admin Navigation">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.png" alt="Brothers Club Cheeral Logo" class="nav-logo" />
+        <div class="nav-brand-text">
+          <div class="club-name">Brothers Club Cheeral</div>
+          <div class="reg-no">Admin Moderation Panel</div>
+        </div>
+      </a>
+      <div class="admin-nav-actions" id="adminNavActions" style="display: none;">
+        <span class="admin-user-email" id="adminUserEmail">admin@brothersclub.com</span>
+        <a href="history.html" class="btn btn-outline btn-sm" target="_blank">🌐 View Gallery</a>
+        <button id="logoutBtn" class="btn btn-primary btn-sm">🔒 Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- AUTHENTICATION CONTAINER (LOGIN FORM) -->
+  <div class="container" id="authSection" style="max-width: 440px; margin-top: 4rem; margin-bottom: 5rem;">
+    <div class="admin-card auth-card">
+      <div class="auth-header">
+        <img src="assets/logo.png" alt="Brothers Club Cheeral" class="auth-logo" />
+        <h2>Admin Portal Sign In</h2>
+        <p>Brothers Club Cheeral Photo Moderation &amp; Gallery Management</p>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="adminEmail">Email Address</label>
+          <input type="email" id="adminEmail" required placeholder="admin@brothersclub.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" required placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button type="submit" id="loginBtn" class="btn btn-primary btn-block">
+          🔐 Sign In to Dashboard
+        </button>
+        <p id="authError" class="auth-error" style="display: none;"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- DASHBOARD CONTAINER (PROTECTED AREA) -->
+  <main class="container admin-dashboard" id="dashboardSection" style="display: none; margin-top: 2rem; margin-bottom: 5rem;">
+    
+    <header class="dashboard-header">
+      <div>
+        <h1 class="dashboard-title">Photo Moderation Dashboard</h1>
+        <p class="dashboard-subtitle">Manage member uploads, approve pending submissions, edit captions, and clean up gallery files.</p>
+      </div>
+      <div class="dashboard-stats">
+        <div class="stat-badge pending-badge">
+          <span class="stat-num" id="pendingCount">0</span>
+          <span class="stat-lbl">Pending Approval</span>
+        </div>
+        <div class="stat-badge approved-badge">
+          <span class="stat-num" id="approvedCount">0</span>
+          <span class="stat-lbl">Approved Photos</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD TABS -->
+    <div class="admin-tabs">
+      <button class="tab-btn active" id="tabPendingBtn" data-tab="pendingTab">
+        ⏳ Pending Approvals (<span id="pendingTabCount">0</span>)
+      </button>
+      <button class="tab-btn" id="tabApprovedBtn" data-tab="approvedTab">
+        ✅ Approved Gallery (<span id="approvedTabCount">0</span>)
+      </button>
+    </div>
+
+    <!-- PENDING APPROVALS TAB -->
+    <section id="pendingTab" class="tab-content active">
+      <div class="admin-grid" id="pendingGrid">
+        <div class="admin-empty-state" id="pendingEmpty">
+          <div class="empty-icon">🎉</div>
+          <h3>No Pending Photos</h3>
+          <p>All submitted member photos have been moderated.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- APPROVED GALLERY TAB -->
+    <section id="approvedTab" class="tab-content" style="display: none;">
+      <div class="admin-grid" id="approvedGrid">
+        <div class="admin-empty-state" id="approvedEmpty">
+          <div class="empty-icon">🖼️</div>
+          <h3>No Approved Photos Yet</h3>
+          <p>Approved photos will appear here and on the public website.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- EDIT CAPTION MODAL -->
+  <div class="admin-modal" id="editModal" style="display: none;" role="dialog" aria-modal="true">
+    <div class="admin-modal-content">
+      <div class="admin-modal-header">
+        <h3>Edit Photo Details</h3>
+        <button id="closeEditModal" class="modal-close-btn">&times;</button>
+      </div>
+      <form id="editForm">
+        <input type="hidden" id="editPhotoId" />
+        <div class="form-group">
+          <label for="editCaption">Caption / Description</label>
+          <input type="text" id="editCaption" required placeholder="Enter photo caption..." />
+        </div>
+        <div class="form-group">
+          <label for="editDecade">Decade Tag (Optional)</label>
+          <select id="editDecade">
+            <option value="1980s">1980s</option>
+            <option value="1990s">1990s</option>
+            <option value="2000s">2000s</option>
+            <option value="2010s">2010s</option>
+            <option value="2020s">2020s</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancelEditBtn" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- FIREBASE ADMIN SCRIPT (MODULAR SDK v10) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      query, 
+      where, 
+      orderBy, 
+      onSnapshot, 
+      doc, 
+      updateDoc, 
+      deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+      getStorage, 
+      ref, 
+      deleteObject 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // DOM Elements
+    const authSection = document.getElementById("authSection");
+    const dashboardSection = document.getElementById("dashboardSection");
+    const adminNavActions = document.getElementById("adminNavActions");
+    const adminUserEmail = document.getElementById("adminUserEmail");
+    const loginForm = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("loginBtn");
+    const authError = document.getElementById("authError");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const pendingGrid = document.getElementById("pendingGrid");
+    const approvedGrid = document.getElementById("approvedGrid");
+    const pendingEmpty = document.getElementById("pendingEmpty");
+    const approvedEmpty = document.getElementById("approvedEmpty");
+
+    const pendingCount = document.getElementById("pendingCount");
+    const approvedCount = document.getElementById("approvedCount");
+    const pendingTabCount = document.getElementById("pendingTabCount");
+    const approvedTabCount = document.getElementById("approvedTabCount");
+
+    const editModal = document.getElementById("editModal");
+    const editForm = document.getElementById("editForm");
+    const editPhotoId = document.getElementById("editPhotoId");
+    const editCaption = document.getElementById("editCaption");
+    const editDecade = document.getElementById("editDecade");
+    const closeEditModal = document.getElementById("closeEditModal");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    // Tab Navigation
+    const tabPendingBtn = document.getElementById("tabPendingBtn");
+    const tabApprovedBtn = document.getElementById("tabApprovedBtn");
+    const pendingTab = document.getElementById("pendingTab");
+    const approvedTab = document.getElementById("approvedTab");
+
+    tabPendingBtn.addEventListener("click", () => switchTab("pending"));
+    tabApprovedBtn.addEventListener("click", () => switchTab("approved"));
+
+    function switchTab(tab) {
+      if (tab === "pending") {
+        tabPendingBtn.classList.add("active");
+        tabApprovedBtn.classList.remove("active");
+        pendingTab.style.display = "block";
+        approvedTab.style.display = "none";
+      } else {
+        tabApprovedBtn.classList.add("active");
+        tabPendingBtn.classList.remove("active");
+        approvedTab.style.display = "block";
+        pendingTab.style.display = "none";
+      }
+    }
+
+    // Helper Toast
+    function showToast(message, type = "info") {
+      const toastContainer = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add("fade-out");
+        setTimeout(() => toast.remove(), 400);
+      }, 3500);
+    }
+
+    // Authentication State Observer
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Logged In
+        authSection.style.display = "none";
+        dashboardSection.style.display = "block";
+        adminNavActions.style.display = "flex";
+        adminUserEmail.textContent = user.email;
+        initRealtimeListeners();
+      } else {
+        // Logged Out
+        authSection.style.display = "block";
+        dashboardSection.style.display = "none";
+        adminNavActions.style.display = "none";
+      }
+    });
+
+    // Login Form Submit
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
+      
+      authError.style.display = "none";
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = "⌛ Authenticating...";
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showToast("Signed in successfully!", "success");
+      } catch (error) {
+        authError.style.display = "block";
+        authError.textContent = error.message.includes("auth/invalid-credential") 
+          ? "Invalid email or password. Please try again." 
+          : error.message;
+        showToast("Sign-in failed. Please check your credentials.", "error");
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = "🔐 Sign In to Dashboard";
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        showToast("Signed out successfully.", "info");
+      } catch (err) {
+        showToast("Error signing out.", "error");
+      }
+    });
+
+    // Real-time Firestore Listeners
+    let unsubscribePending = null;
+    let unsubscribeApproved = null;
+
+    function initRealtimeListeners() {
+      if (unsubscribePending) unsubscribePending();
+      if (unsubscribeApproved) unsubscribeApproved();
+
+      const photosRef = collection(db, "gallery_photos");
+
+      // 1. Pending Photos Listener (isApproved == false)
+      const qPending = query(photosRef, where("isApproved", "==", false), orderBy("createdAt", "desc"));
+      unsubscribePending = onSnapshot(qPending, (snapshot) => {
+        const pendingDocs = snapshot.docs;
+        pendingCount.textContent = pendingDocs.length;
+        pendingTabCount.textContent = pendingDocs.length;
+        renderPendingPhotos(pendingDocs);
+      }, (error) => {
+        console.error("Error fetching pending photos:", error);
+      });
+
+      // 2. Approved Photos Listener (isApproved == true)
+      const qApproved = query(photosRef, where("isApproved", "==", true), orderBy("createdAt", "desc"));
+      unsubscribeApproved = onSnapshot(qApproved, (snapshot) => {
+        const approvedDocs = snapshot.docs;
+        approvedCount.textContent = approvedDocs.length;
+        approvedTabCount.textContent = approvedDocs.length;
+        renderApprovedPhotos(approvedDocs);
+      }, (error) => {
+        console.error("Error fetching approved photos:", error);
+      });
+    }
+
+    // Render Pending Cards
+    function renderPendingPhotos(docs) {
+      // Remove all cards except empty state
+      pendingGrid.querySelectorAll(".admin-card").forEach(el => el.remove());
+
+      if (docs.length === 0) {
+        pendingEmpty.style.display = "block";
+        return;
+      }
+      pendingEmpty.style.display = "none";
+
+      docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : 'Just now';
+
+        const card = document.createElement("div");
+        card.className = "admin-card photo-card";
+        card.innerHTML = `
+          <div class="card-img-wrap">
+            <img src="${data.imageUrl}" alt="${data.fileName}" loading="lazy" />
+            <span class="status-badge pending">⏳ Pending</span>
+          </div>
+          <div class="card-body">
+            <h4 class="card-filename" title="${data.fileName}">${data.fileName}</h4>
+            <p class="card-date">📅 Uploaded: ${dateStr}</p>
+            <div class="card-actions">
+              <button class="btn btn-success btn-sm approve-btn" data-id="${id}">
+                ✅ Approve
+              </button>
+              <button class="btn btn-danger btn-sm delete-btn" data-id="${id}" data-path="${data.storagePath || ''}">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+        pendingGrid.appendChild(card);
+      });
+
+      // Add Action Listeners
+      pendingGrid.querySelectorAll(".approve-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => approvePhoto(e.target.dataset.id));
+      });
+      pendingGrid.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => deletePhoto(e.target.dataset.id, e.target.dataset.path));
+      });
+    }
+
+    // Render Approved Cards
+    function renderApprovedPhotos(docs) {
+      approvedGrid.querySelectorAll(".admin-card").forEach(el => el.remove());
+
+      if (docs.length === 0) {
+        approvedEmpty.style.display = "block";
+        return;
+      }
+      approvedEmpty.style.display = "none";
+
+      docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const caption = data.caption || data.fileName || 'Untitled';
+        const decade = data.decade || '2020s';
+
+        const card = document.createElement("div");
+        card.className = "admin-card photo-card";
+        card.innerHTML = `
+          <div class="card-img-wrap">
+            <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
+            <span class="status-badge approved">✅ Approved</span>
+          </div>
+          <div class="card-body">
+            <h4 class="card-filename" title="${caption}">${caption}</h4>
+            <p class="card-date">🏷️ ${decade}</p>
+            <div class="card-actions col-3">
+              <button class="btn btn-outline btn-sm edit-btn" data-id="${id}" data-caption="${caption}" data-decade="${decade}">
+                ✏️ Edit
+              </button>
+              <a href="${data.imageUrl}" download="${data.fileName}" target="_blank" class="btn btn-outline btn-sm">
+                ⬇️ Save
+              </a>
+              <button class="btn btn-danger btn-sm delete-btn" data-id="${id}" data-path="${data.storagePath || ''}">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+        approvedGrid.appendChild(card);
+      });
+
+      // Listeners
+      approvedGrid.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id, e.target.dataset.caption, e.target.dataset.decade));
+      });
+      approvedGrid.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => deletePhoto(e.target.dataset.id, e.target.dataset.path));
+      });
+    }
+
+    // Approve Photo Action
+    async function approvePhoto(id) {
+      try {
+        const docRef = doc(db, "gallery_photos", id);
+        await updateDoc(docRef, { isApproved: true });
+        showToast("Photo approved and published to gallery!", "success");
+      } catch (error) {
+        console.error("Error approving photo:", error);
+        showToast("Failed to approve photo: " + error.message, "error");
+      }
+    }
+
+    // Delete Photo Action (Firestore + Storage)
+    async function deletePhoto(id, storagePath) {
+      if (!confirm("Are you sure you want to delete this photo permanently?")) return;
+
+      try {
+        // Delete Firestore document
+        await deleteDoc(doc(db, "gallery_photos", id));
+
+        // Delete Storage file if path exists
+        if (storagePath) {
+          try {
+            const fileRef = ref(storage, storagePath);
+            await deleteObject(fileRef);
+          } catch (storageErr) {
+            console.warn("Storage deletion warning:", storageErr);
+          }
+        }
+        showToast("Photo deleted successfully.", "success");
+      } catch (error) {
+        console.error("Error deleting photo:", error);
+        showToast("Failed to delete photo: " + error.message, "error");
+      }
+    }
+
+    // Edit Modal Actions
+    function openEditModal(id, caption, decade) {
+      editPhotoId.value = id;
+      editCaption.value = caption;
+      editDecade.value = decade || "2020s";
+      editModal.style.display = "flex";
+    }
+
+    closeEditModal.addEventListener("click", () => editModal.style.display = "none");
+    cancelEditBtn.addEventListener("click", () => editModal.style.display = "none");
+
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = editPhotoId.value;
+      const newCaption = editCaption.value.trim();
+      const newDecade = editDecade.value;
+
+      try {
+        const docRef = doc(db, "gallery_photos", id);
+        await updateDoc(docRef, {
+          caption: newCaption,
+          decade: newDecade
+        });
+        editModal.style.display = "none";
+        showToast("Photo details updated!", "success");
+      } catch (err) {
+        showToast("Error updating photo: " + err.message, "error");
+      }
+    });
+  </script>
+</body>
+</html>

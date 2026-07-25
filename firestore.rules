@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Gallery Photos Collection
+    match /gallery_photos/{photoId} {
+      
+      // Anyone can read approved photos
+      // Admins can read all photos (pending & approved)
+      allow read: if resource.data.isApproved == true || request.auth != null;
+      
+      // Anyone can submit a photo with default isApproved = false
+      allow create: if request.resource.data.isApproved == false
+                    && request.resource.data.keys().hasAll(['imageUrl', 'fileName', 'createdAt', 'isApproved'])
+                    && request.resource.data.imageUrl is string
+                    && request.resource.data.fileName is string;
+                    
+      // Only authenticated admin users can update (e.g., approve or edit caption) or delete photos
+      allow update, delete: if request.auth != null;
+    }
+  }
+}

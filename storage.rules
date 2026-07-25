@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Gallery uploads folder
+    match /gallery_uploads/{allPaths=**} {
+      
+      // Anyone can read uploaded images
+      allow read: if true;
+      
+      // Anyone can upload an image file less than 10MB
+      allow create: if request.resource.size < 10 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+                    
+      // Only authenticated admin users can delete image files from storage
+      allow delete, update: if request.auth != null;
+    }
+  }
+}

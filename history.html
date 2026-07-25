@@ -7,6 +7,8 @@
   <title>History &amp; Gallery | Brothers Club Cheeral</title>
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="stylesheet" href="css/style.css" />
+  <!-- Client-side image compression library -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 </head>
 <body>
 
@@ -22,11 +24,12 @@
       </a>
       <ul class="nav-links" id="navLinks">
         <li><a href="index.html">Home</a></li>
-        <li><a href="history.html">History &amp; Gallery</a></li>
+        <li><a href="history.html" class="active">History &amp; Gallery</a></li>
         <li><a href="team.html">Team &amp; Legends</a></li>
         <li><a href="trophies.html">Trophies</a></li>
         <li><a href="contact.html">Contact</a></li>
-</ul>
+        <li><a href="admin.html" class="nav-admin-link">🔑 Admin</a></li>
+      </ul>
 
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
         <span></span><span></span><span></span>
@@ -50,9 +53,9 @@
       <h2 class="section-title reveal delay-1" id="gallery-heading">Photo Archive</h2>
       <div class="section-divider reveal delay-2"></div>
 
-      <!-- Gallery Grid -->
+      <!-- Real-time Firestore Gallery Grid -->
       <div class="gallery-grid" id="galleryGrid">
-
+        <!-- Default Static Photos (fallback / baseline photos) -->
         <div class="gallery-item reveal" data-decade="1980s" data-src="assets/images/gallery_1990s.jpg" data-caption="Brothers Club Cheeral – Founding Years (1988)">
           <img src="assets/images/gallery_1990s.jpg" alt="Brothers Club Cheeral founding year photo 1988" loading="lazy" />
           <div class="gallery-overlay">
@@ -61,7 +64,6 @@
           <div class="gallery-zoom-icon">🔍</div>
         </div>
 
-        <!-- 2000s -->
         <div class="gallery-item reveal delay-1" data-decade="2000s" data-src="assets/images/gallery_2000s_1.jpg" data-caption="Brothers Club Cheeral – 2000s Era">
           <img src="assets/images/gallery_2000s_1.jpg" alt="Brothers Club Cheeral 2000s team photo" loading="lazy" />
           <div class="gallery-overlay"><span class="gallery-overlay-text">🌟 2000s – New Millennium</span></div>
@@ -80,7 +82,6 @@
           <div class="gallery-zoom-icon">🔍</div>
         </div>
 
-        <!-- 2010s -->
         <div class="gallery-item reveal delay-1" data-decade="2010s" data-src="assets/images/gallery_2010s_1.jpg" data-caption="Brothers Club Cheeral – 2010s Match Day">
           <img src="assets/images/gallery_2010s_1.jpg" alt="Brothers Club Cheeral 2010s match day photo" loading="lazy" />
           <div class="gallery-overlay"><span class="gallery-overlay-text">🎯 2010s – Match Day</span></div>
@@ -92,7 +93,6 @@
           <div class="gallery-overlay"><span class="gallery-overlay-text">⚡ 2010s – Team Lineup</span></div>
           <div class="gallery-zoom-icon">🔍</div>
         </div>
-
       </div><!-- /gallery-grid -->
 
       <!-- Upload Section -->
@@ -103,13 +103,20 @@
           Have old club photos or recent match shots? Drop them here to add to our archive.<br/>
           Drag &amp; drop images or click the button below to select files.
         </p>
-        <input type="file" id="fileInput" accept="image/*" multiple aria-label="Select photos to upload" />
+        <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple aria-label="Select photos to upload" style="display: none;" />
         <div class="upload-actions">
           <button class="btn btn-primary" id="uploadBtn" type="button">
             📁 Select Photos
           </button>
         </div>
-        <p id="uploadCount" style="color: var(--accent); font-size: 0.85rem; margin-top: 0.75rem;"></p>
+
+        <div id="uploadProgressContainer" class="upload-progress-container" style="display: none;">
+          <div class="progress-bar-wrap">
+            <div id="uploadProgressBar" class="progress-bar-fill"></div>
+          </div>
+          <p id="uploadProgressText" class="progress-text">Compressing and uploading photos...</p>
+        </div>
+
         <p id="uploadStatus" class="upload-status"></p>
         <p class="upload-note">Supported formats: JPG, PNG, WEBP · Max 10 files at once</p>
         <div class="upload-preview" id="uploadPreview"></div>
@@ -145,9 +152,6 @@
             <a href="https://www.youtube.com/@BrothersClubCheeral" target="_blank" rel="noopener" class="footer-social-btn yt" aria-label="YouTube" title="YouTube">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
             </a>
-            <a href="https://www.facebook.com/CheeralSupperLeeg/" target="_blank" rel="noopener" class="footer-social-btn csl" aria-label="Cheeral Super League Facebook" title="Cheeral Super League">
-              🏆
-            </a>
           </div>
         </div>
         <div>
@@ -166,18 +170,12 @@
             <li><a href="#">📅 Founded: 1988</a></li>
             <li><a href="#">📋 Reg. No: 27/88</a></li>
             <li><a href="#">📍 Cheeral, Kerala</a></li>
-            <li><a href="https://www.facebook.com/brscrl/" target="_blank" rel="noopener">📘 Brothers Club FB</a></li>
-            <li><a href="https://www.instagram.com/brothers_cheeral/" target="_blank" rel="noopener">📸 Instagram</a></li>
-            <li><a href="https://www.youtube.com/@BrothersClubCheeral" target="_blank" rel="noopener">▶️ YouTube Channel</a></li>
-            <li><a href="https://www.facebook.com/CheeralSupperLeeg/" target="_blank" rel="noopener">🏆 Cheeral Super League</a></li>
+            <li><a href="admin.html">🔑 Admin Panel</a></li>
           </ul>
         </div>
         <div>
           <div class="footer-col-title">Gallery</div>
           <ul class="footer-links">
-            <li><a href="#filter-1980s">📷 1980s Photos</a></li>
-            <li><a href="#filter-1990s">📷 1990s Photos</a></li>
-            <li><a href="#filter-2000s">📷 2000s Photos</a></li>
             <li><a href="#uploadDropzone">📤 Upload Photos</a></li>
           </ul>
         </div>
@@ -190,5 +188,246 @@
   </footer>
 
   <script src="js/main.js"></script>
+
+  <!-- FIREBASE INTEGRATION & CLIENT-SIDE COMPRESSION SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      query, 
+      where, 
+      orderBy, 
+      onSnapshot, 
+      addDoc, 
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+      getStorage, 
+      ref, 
+      uploadBytesResumable, 
+      getDownloadURL 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // 1. REAL-TIME GALLERY PUBLIC LISTENER (isApproved == true)
+    const galleryGrid = document.getElementById("galleryGrid");
+
+    function listenToApprovedPhotos() {
+      try {
+        const photosRef = collection(db, "gallery_photos");
+        const q = query(photosRef, where("isApproved", "==", true), orderBy("createdAt", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+          // Keep default static items, append or refresh firestore items
+          const existingDynamicItems = galleryGrid.querySelectorAll(".firestore-gallery-item");
+          existingDynamicItems.forEach(el => el.remove());
+
+          snapshot.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            const caption = data.caption || data.fileName || "Brothers Club Cheeral Photo";
+            const decade = data.decade || "2020s";
+
+            const itemEl = document.createElement("div");
+            itemEl.className = "gallery-item firestore-gallery-item reveal active";
+            itemEl.setAttribute("data-decade", decade);
+            itemEl.setAttribute("data-src", data.imageUrl);
+            itemEl.setAttribute("data-caption", caption);
+
+            itemEl.innerHTML = `
+              <img src="${data.imageUrl}" alt="${caption}" loading="lazy" />
+              <div class="gallery-overlay">
+                <span class="gallery-overlay-text">📸 ${caption}</span>
+              </div>
+              <div class="gallery-zoom-icon">🔍</div>
+            `;
+
+            // Lightbox Click Event
+            itemEl.addEventListener("click", () => {
+              const lb = document.getElementById("lightbox");
+              const lbImg = document.getElementById("lbImg");
+              const lbCaption = document.getElementById("lbCaption");
+              if (lb && lbImg && lbCaption) {
+                lbImg.src = data.imageUrl;
+                lbCaption.textContent = caption;
+                lb.classList.add("active");
+              }
+            });
+
+            galleryGrid.prepend(itemEl);
+          });
+        }, (error) => {
+          console.warn("Firestore real-time gallery notice:", error);
+        });
+      } catch (err) {
+        console.warn("Firestore setup:", err);
+      }
+    }
+
+    listenToApprovedPhotos();
+
+    // 2. DRAG AND DROP UPLOAD WITH CLIENT-SIDE COMPRESSION
+    const uploadDropzone = document.getElementById("uploadDropzone");
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const uploadStatus = document.getElementById("uploadStatus");
+    const uploadPreview = document.getElementById("uploadPreview");
+    const progressContainer = document.getElementById("uploadProgressContainer");
+    const progressBar = document.getElementById("uploadProgressBar");
+    const progressText = document.getElementById("uploadProgressText");
+
+    uploadBtn.addEventListener("click", () => fileInput.click());
+
+    // Drag events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadDropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadDropzone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadDropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadDropzone.classList.remove('dragover');
+      }, false);
+    });
+
+    uploadDropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleFiles(Array.from(files));
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFiles(Array.from(e.target.files));
+      }
+    });
+
+    // File Upload Handler
+    async function handleFiles(files) {
+      // Validate File Count
+      if (files.length > 10) {
+        uploadStatus.className = "upload-status error";
+        uploadStatus.textContent = "⚠️ Please select a maximum of 10 photos at once.";
+        return;
+      }
+
+      // Filter Allowed Types
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const validFiles = files.filter(f => allowedTypes.includes(f.type));
+
+      if (validFiles.length === 0) {
+        uploadStatus.className = "upload-status error";
+        uploadStatus.textContent = "⚠️ Invalid file format. Please select JPG, PNG, or WEBP images.";
+        return;
+      }
+
+      uploadPreview.innerHTML = "";
+      progressContainer.style.display = "block";
+      uploadStatus.className = "upload-status info";
+      uploadStatus.textContent = `Processing ${validFiles.length} file(s)...`;
+
+      let completedCount = 0;
+
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        try {
+          // Step A: Client-side Image Compression
+          progressText.textContent = `Compressing ${file.name} (${i + 1}/${validFiles.length})...`;
+          progressBar.style.width = `${((i / validFiles.length) * 50).toFixed(0)}%`;
+
+          const options = {
+            maxSizeMB: 1.0,           // Max size ~1MB
+            maxWidthOrHeight: 1920,   // Max dimension 1920px
+            useWebWorker: true
+          };
+
+          let compressedFile = file;
+          if (window.imageCompression) {
+            compressedFile = await window.imageCompression(file, options);
+            console.log(`Original: ${(file.size / 1024).toFixed(1)}KB -> Compressed: ${(compressedFile.size / 1024).toFixed(1)}KB`);
+          }
+
+          // Step B: Firebase Storage Upload
+          progressText.textContent = `Uploading ${file.name} to Storage...`;
+          const timeStamp = Date.now();
+          const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+          const storagePath = `gallery_uploads/${timeStamp}_${cleanFileName}`;
+          const storageRef = ref(storage, storagePath);
+
+          const uploadTask = uploadBytesResumable(storageRef, compressedFile);
+
+          await new Promise((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              (snapshot) => {
+                const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 50;
+                progressBar.style.width = `${(50 + (i / validFiles.length) * 50 + (percentage / validFiles.length)).toFixed(0)}%`;
+              },
+              (err) => reject(err),
+              async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                // Step C: Save to Cloud Firestore
+                await addDoc(collection(db, "gallery_photos"), {
+                  imageUrl: downloadURL,
+                  fileName: file.name,
+                  caption: file.name.replace(/\.[^/.]+$/, ""),
+                  createdAt: serverTimestamp(),
+                  isApproved: false, // Pending moderation
+                  storagePath: storagePath
+                });
+
+                // Add preview card
+                const previewThumb = document.createElement("div");
+                previewThumb.className = "preview-item";
+                previewThumb.innerHTML = `
+                  <img src="${downloadURL}" alt="${file.name}" />
+                  <span class="preview-tag">⏳ Pending</span>
+                `;
+                uploadPreview.appendChild(previewThumb);
+
+                completedCount++;
+                resolve();
+              }
+            );
+          });
+
+        } catch (err) {
+          console.error("Error processing file:", file.name, err);
+        }
+      }
+
+      // Finish Progress
+      progressBar.style.width = "100%";
+      progressText.textContent = "Upload complete!";
+
+      setTimeout(() => {
+        progressContainer.style.display = "none";
+        progressBar.style.width = "0%";
+      }, 3000);
+
+      if (completedCount > 0) {
+        uploadStatus.className = "upload-status success";
+        uploadStatus.textContent = `✅ Successfully submitted ${completedCount} photo(s)! They are pending admin approval before appearing in the gallery.`;
+      } else {
+        uploadStatus.className = "upload-status error";
+        uploadStatus.textContent = "❌ Upload failed. Please check your Firebase configuration.";
+      }
+
+      fileInput.value = "";
+    }
+  </script>
 </body>
 </html>
