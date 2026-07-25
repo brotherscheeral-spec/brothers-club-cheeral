@@ -15,5 +15,5 @@ export const githubConfig = {
   repo: "brothers-club-cheeral",
   branch: "main",
   folder: "images/gallery",
-  token: "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN" // Replace with GitHub Personal Access Token (repo permissions)
+  token: "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"
 };
